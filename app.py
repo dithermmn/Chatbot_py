@@ -92,6 +92,9 @@ def recibir_mensajes(req):
                     
                     enviar_mensajes_whatsapp(text,numero)
 
+                    #Guardar Log en la BD
+                    agregar_mensajes_log(json.dumps(messages))
+
         return jsonify({'message':'EVENT_RECEIVED'})
     
     except Exception as e:
@@ -101,7 +104,19 @@ def recibir_mensajes(req):
 def enviar_mensajes_whatsapp(texto,number):
     texto = texto.lower () #formatea para que todo sea en minusculas
 
+#Programar Mensaje
     if "hola" in texto:
+        data={
+            "messaging_product": "whatsapp",    
+            "recipient_type": "individual",
+            "to": number,
+            "type": "text",
+            "text": {
+                "preview_url": False,
+                "body": "Hola, encuentra mas informacion en dithermichel.com"
+            }
+        }
+    elif "1" in texto:
         data={
             "messaging_product": "whatsapp",    
             "recipient_type": "individual",
