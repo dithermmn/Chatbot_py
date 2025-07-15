@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+import http.client
 import json
 
 app = Flask(__name__)
@@ -20,14 +21,6 @@ class Log(db.Model):
 #Crear la tabla si no existe
 with app.app_context():
     db.create_all()
-
-    #Mensaje de Prueba
-    prueba1 = Log(texto='Mensake 1')
-    prueba2 = Log(texto='Mensake 2')
-
-    db.session.add(prueba1)
-    db.session.add(prueba2)
-    db.session.commit()
 
 #Funcion para ordenar los registros por fecha y hora 
 def ordenar_por_fecha_y_hora(registros):
@@ -73,6 +66,9 @@ def verificar_token(req):
     else:
         return jsonify({'error':'Token Invalido'}),401
 
+
+# Dashboard - webhook - registro/ tabla
+
 def recibir_mensajes(req):
     try:
         req = request.get_json()
@@ -104,6 +100,53 @@ def recibir_mensajes(req):
     except Exception as e:
         return jsonify({'message':'EVENT_RECEIVED'})
 
+
+def enviar_mensajes_whatsapp(texto,number):
+    texto = texto.lower () #formatea para que todo sea en minusculas
+
+    if "hola" in texto:
+        data={
+            "messaging_product": "whatsapp",    
+            "recipient_type": "individual",
+            "to": number,
+            "type": "text",
+            "text": {
+                "preview_url": False,
+                "body": "Hola, encuentra mas informacion en dithermichel.com"
+            }
+        }
+    else:
+        data={
+            "messaging_product": "whatsapp",    
+            "recipient_type": "individual",
+            "to": number,
+            "type": "text",
+            "text": {
+                "preview_url": False,
+                "body": "OTRA COOOOSAAAA"
+            }
+        }
+
+    #convertir el diccionario a formato json
+    data=json.dumps(data)
+
+    headers = {
+        "Content-Type" : "application/json",
+        "Authorization" : "Bearer EAAVPtixyt4QBPH4V0nQriRZAh9x8c4YXMEli3Y3wTIRzTGpyvX1vmidplK7DBRD8sgApVQoTRFX5ReWvTE56vZCsdUhc7Ui6FYPSjfclf31psuXLSxyUcSFueuI1sNnKS6lZAkWsrZB5hp80dhvgovLhvdexLHdr8d8liwnaJkVwRkW3AhuyjYXZC8As1QkWO9fxZAKmQLdnaZByAi7bG2MViD5duZCqPjkvk4IfpGMAyskZAChsZD" # TOKEN DE META DEVELOPERS
+    }
+
+    connection = http.client.HTTPSConnection("graph.facebook.com")
+
+    try:
+        connection.request("POST","/v22.0/762799950241046/messages", data, headers) #cambiar el url es de meta (bot)
+        response = connection.getresponse()
+        print(response.status, response.reason)
+
+    except Exception as e:
+        agregar_mensajes_log(json.dumps(e))
+
+    finally:
+        connection.close()
 
 if __name__=='__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
