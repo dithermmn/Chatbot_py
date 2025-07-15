@@ -72,6 +72,8 @@ def verificar_token(req):
 def recibir_mensajes(req):
     try:
         req = request.get_json()
+        print("Mensaje recibido", json.dumps(req, indent=2))# quitar esto
+
         entry =req['entry'][0]
         changes = entry['changes'][0]
         value = changes['value']
@@ -153,6 +155,7 @@ def enviar_mensajes_whatsapp(texto,number):
         connection.request("POST","/v22.0/762799950241046/messages", data, headers) #cambiar el url es de meta (bot)
         response = connection.getresponse()
         print(response.status, response.reason)
+        print(response.read().decode())
 
     except Exception as e:
         agregar_mensajes_log(json.dumps(e))
