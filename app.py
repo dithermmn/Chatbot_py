@@ -1,4 +1,4 @@
-from flask import Flask,request,jsonify, render_template
+from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import json
@@ -20,6 +20,14 @@ class Log(db.Model):
 #Crear la tabla si no existe
 with app.app_context():
     db.create_all()
+
+    #Mensaje de Prueba
+    prueba1 = Log(texto='Mensake 1')
+    prueba2 = Log(texto='Mensake 2')
+
+    db.session.add(prueba1)
+    db.session.add(prueba2)
+    db.session.commit()
 
 #Funcion para ordenar los registros por fecha y hora 
 def ordenar_por_fecha_y_hora(registros):
@@ -66,9 +74,19 @@ def verificar_token(req):
         return jsonify({'error':'Token Invalido'}),401
 
 def recibir_mensajes(req):
-    req = request.get_json()
-    agregar_mensajes_log(req)
-    return jsonify({'message':'EVENT_RECEIVED'})
+    try:
+        req = request.get_json()
+        entry =req['entry'][0]
+        changes = entry['changes'][0]
+        value = changes['value']
+        objeto_mensaje = value['messages']
+
+        agregar_mensajes_log(objeto_mensaje)
+
+        return jsonify({'message':'EVENT_RECEIVED'})
+    
+    except Exception as e:
+        return jsonify({'message':'EVENT_RECEIVED'})
 
 
 if __name__=='__main__':
