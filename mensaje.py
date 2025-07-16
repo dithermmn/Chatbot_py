@@ -3,17 +3,17 @@ import requests
 ACCESS_TOKEN = "EAAVPtixyt4QBPEpSC5NKIYsLqcMqM4TZBEb8Yi61JnZAseUZAz5SgyiCty5tXuBe5sZB75fQw8QbBcYeihpasWnGk5Rur3MmCkLaLv6xw0g1W1S2pX04bSebHPM4axbZBZBT0lUyzjZAxt0HcGbWADytJdcO9o4rhc5CBZBPJFxDzjgEsRPxP6okEYjtEtRx01n89yzRR7PeqjRtf7ZCI4vCOrrUBV7o6nd3F30QbJJ6iWB62tCEZD"
 PHONE_NUMBER_ID = "762799950241046"
 API_URL = f"https://graph.facebook.com/v22.0/762799950241046/messages"
-numero = "524611777249" # borrar esta linea
+number = "524611777249" # borrar esta linea
 
 HEADERS = {
     "Authorization": f"Bearer {ACCESS_TOKEN}",
     "Content-Type": "application/json"
 }
 
-def enviar_menu(numero):
+def enviar_menu(number):
     data = {
         "messaging_product": "whatsapp",
-        "to": numero,
+        "to": 524611777249,
         "type": "interactive",
         "interactive": {
             "type": "button",
@@ -31,10 +31,10 @@ def enviar_menu(numero):
     }
     requests.post(API_URL, headers=HEADERS, json=data)
 
-def enviar_opcion(numero, texto):
+def enviar_opcion(number, texto):
     data = {
         "messaging_product": "whatsapp",
-        "to": numero,
+        "to": 524611777249,
         "type": "interactive",
         "interactive": {
             "type": "button",
@@ -48,10 +48,10 @@ def enviar_opcion(numero, texto):
     }
     requests.post(API_URL, headers=HEADERS, json=data)
 
-def enviar_texto(numero, texto):
+def enviar_texto(number, texto):
     data = {
         "messaging_product": "whatsapp",
-        "to": numero,
+        "to": 524611777249,
         "type": "text",
         "text": {"body": texto}
     }
