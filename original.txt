@@ -86,10 +86,11 @@ def recibir_mensajes(req):
                 if tipo == "interactive":
                     return 0
                 
-                if "text" in messages:
+                if "text" in messages and "body" in messages["text"]:
                     text = messages["text"]["body"]
-                    numero = messages["from"]
+                    numero = messages["from"].strip() #limpar espacios si los hubiera
                     
+                    print("Numero:", numero) # verifica que este bien 
                     enviar_mensajes_whatsapp(text,numero)
 
                     #Guardar Log en la BD
@@ -132,7 +133,7 @@ def enviar_mensajes_whatsapp(texto,number):
         data={
             "messaging_product": "whatsapp",    
             "recipient_type": "individual",
-            "to": 524611777249,
+            "to": number,
             "type": "text",
             "text": {
                 "preview_url": False,

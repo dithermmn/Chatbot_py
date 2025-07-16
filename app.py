@@ -6,56 +6,46 @@ import json
 
 app = Flask(__name__)
 
-#Configuracion de la BD SQLite
+# Configuración de la base de datos SQLite
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///metapython.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db =SQLAlchemy(app)
+db = SQLAlchemy(app)
 
-
-#Modelo de la tabla log
+# Modelo de la tabla log
 class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     fecha_y_hora = db.Column(db.DateTime, default=datetime.utcnow)
     texto = db.Column(db.TEXT)
 
-#Crear la tabla si no existe
+# Crear la tabla si no existe
 with app.app_context():
     db.create_all()
 
-#Funcion para ordenar los registros por fecha y hora 
+# Función para ordenar registros por fecha y hora
 def ordenar_por_fecha_y_hora(registros):
-    return sorted(registros, key=lambda x: x.fecha_y_hora,reverse=True)
-
+    return sorted(registros, key=lambda x: x.fecha_y_hora, reverse=True)
 
 @app.route('/')
 def index():
-    #Obtener todos los registros de la base de datos
     registros = Log.query.all()
     registros_ordenados = ordenar_por_fecha_y_hora(registros)
-    return render_template('index.html',registros=registros_ordenados)
+    return render_template('index.html', registros=registros_ordenados)
 
-mensajes_log = []
-
-#funcion para agregar mensajes y guardar en la base de datos
+# Función para guardar mensajes en la base de datos
 def agregar_mensajes_log(texto):
-    mensajes_log.append(texto)
-
-    #guardar el mensaje en la base de datos
     nuevo_registro = Log(texto=texto)
     db.session.add(nuevo_registro)
     db.session.commit()
 
-#token de verificacion para la configuracion
+# Token de verificación para Meta
 TOKEN_FARABOT = "FARABOT"
 
-@app.route('/webhook', methods=['GET','POST'])
+@app.route('/webhook', methods=['GET', 'POST'])
 def webhook():
     if request.method == 'GET':
-        challenge = verificar_token(request)
-        return challenge
+        return verificar_token(request)
     elif request.method == 'POST':
-        reponse = recibir_mensajes(request)
-    return reponse
+        return recibir_mensajes(request)
 
 def verificar_token(req):
     token = req.args.get('hub.verify_token')
@@ -64,103 +54,87 @@ def verificar_token(req):
     if challenge and token == TOKEN_FARABOT:
         return challenge
     else:
-        return jsonify({'error':'Token Invalido'}),401
+        return jsonify({'error': 'Token inválido'}), 401
 
-
-# Dashboard - webhook - registro/ tabla
-
+# Recepción de mensajes del webhook
 def recibir_mensajes(req):
     try:
         req = request.get_json()
-        entry =req['entry'][0]
+        print("JSON recibido:")
+        print(json.dumps(req, indent=2))
+
+        entry = req['entry'][0]
         changes = entry['changes'][0]
         value = changes['value']
-        objeto_mensaje = value['messages']
+        objeto_mensaje = value.get('messages')
 
         if objeto_mensaje:
             messages = objeto_mensaje[0]
 
-            if "type" in messages:
-                tipo = messages["type"]
+            # Ignorar mensajes interactivos
+            if "type" in messages and messages["type"] == "interactive":
+                return jsonify({'message': 'EVENT_RECEIVED'})
 
-                if tipo == "interactive":
-                    return 0
-                
-                if "text" in messages and "body" in messages["text"]:
-                    text = messages["text"]["body"]
-                    numero = messages["from"].strip() #limpar espacios si los hubiera
-                    
-                    print("Numero:", numero) # verifica que este bien 
-                    enviar_mensajes_whatsapp(text,numero)
+            if "text" in messages and "body" in messages["text"]:
+                text = messages["text"]["body"]
+                numero = messages["from"].strip()
 
-                    #Guardar Log en la BD
-                    agregar_mensajes_log(json.dumps(messages))
+                print("Texto:", text)
+                print("Número:", numero)
 
-        return jsonify({'message':'EVENT_RECEIVED'})
-    
+                enviar_mensajes_whatsapp(text, numero)
+                agregar_mensajes_log(f"{numero}: {text}")
+
+        return jsonify({'message': 'EVENT_RECEIVED'})
+
     except Exception as e:
-        return jsonify({'message':'EVENT_RECEIVED'})
+        print("Error:", str(e))
+        return jsonify({'message': 'EVENT_RECEIVED'})
 
+# Envío de respuestas por WhatsApp
+def enviar_mensajes_whatsapp(texto, numero):
+    texto = texto.lower().strip()
 
-def enviar_mensajes_whatsapp(texto,number):
-    
-    texto = texto.lower () #formatea para que todo sea en minusculas
-
-#Programar Mensaje
     if "hola" in texto:
-        data={
-            "messaging_product": "whatsapp",    
-            "recipient_type": "individual",
-            "to": number,
-            "type": "text",
-            "text": {
-                "preview_url": False,
-                "body": "Hola, encuentra mas informacion en dithermichel.com"
-            }
-        }
+        body_text = "Hola, encuentra más información en https://dithermichel.com"
     elif "1" in texto:
-        data={
-            "messaging_product": "whatsapp",    
-            "recipient_type": "individual",
-            "to": number,
-            "type": "text",
-            "text": {
-                "preview_url": False,
-                "body": "Hola, encuentra mas informacion en dithermichel.com"
-            }
-        }
+        body_text = "Seleccionaste la opción 1. Más info en https://dithermichel.com"
     else:
-        data={
-            "messaging_product": "whatsapp",    
-            "recipient_type": "individual",
-            "to": number,
-            "type": "text",
-            "text": {
-                "preview_url": False,
-                "body": "OTRA COOOOSAAAA"
-            }
-        }
+        body_text = "OTRA COOOOSAAAA"
 
-    #convertir el diccionario a formato json
-    data=json.dumps(data)
+    data = {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": numero,
+        "type": "text",
+        "text": {
+            "preview_url": False,
+            "body": body_text
+        }
+    }
+
+    data = json.dumps(data)
 
     headers = {
-        "Content-Type" : "application/json",
-        "Authorization" : "Bearer EAAVPtixyt4QBPOXksdZAZCd8fTKs4uquZAxRMdq8pxs65VZCAZBGOJIG7vTgUDFKmrYeoHk4gdqlIbh0OBmCjzYjVVwdXrdvrXyYZBQZAQOUKAZBN5WwlChaOwChrEdZCBZBavp7aIH6LiKNYp1ZAC4m99szQ2TImkySmZAIbgsIb1lpa8rnQGPJeZA19GI5tTS9HqlQGmoxODo6k008Mb7tjgE4JupRL1OPqgqsm2xk7LkC6HsEGrLEZD" # TOKEN DE META DEVELOPERS
+        "Content-Type": "application/json",
+        "Authorization": "Bearer EAAVPtixyt4QBPOXksdZAZCd8fTKs4uquZAxRMdq8pxs65VZCAZBGOJIG7vTgUDFKmrYeoHk4gdqlIbh0OBmCjzYjVVwdXrdvrXyYZBQZAQOUKAZBN5WwlChaOwChrEdZCBZBavp7aIH6LiKNYp1ZAC4m99szQ2TImkySmZAIbgsIb1lpa8rnQGPJeZA19GI5tTS9HqlQGmoxODo6k008Mb7tjgE4JupRL1OPqgqsm2xk7LkC6HsEGrLEZD"  # ← Token de acceso válido
     }
 
     connection = http.client.HTTPSConnection("graph.facebook.com")
 
     try:
-        connection.request("POST","/v22.0/762799950241046/messages", data, headers) #cambiar el url es de meta (bot)
+        connection.request("POST", "/v17.0/762799950241046/messages", data, headers)
         response = connection.getresponse()
         print(response.status, response.reason)
+        print(response.read().decode())  # Muestra el detalle de la respuesta
 
     except Exception as e:
-        agregar_mensajes_log(json.dumps(e))
+        print("Error al enviar mensaje:", str(e))
+        agregar_mensajes_log(f"Error al enviar: {str(e)}")
 
     finally:
         connection.close()
 
-if __name__=='__main__':
+# Ejecutar la app
+if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
