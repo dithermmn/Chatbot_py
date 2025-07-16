@@ -98,11 +98,19 @@ def enviar_mensajes_whatsapp(texto, numero):
     texto = texto.lower().strip()
 
     if "hola" in texto:
-        body_text = "👋 ¡Hola! Soy Farabot, tu asistente del Instituto Michael Faraday. Estoy aquí para ayudarte a conocer más sobre nuestro Bachillerato en Línea. ¿Con qué deseas comenzar? 📝 Selecciona una opción respondiendo con el número correspondiente: 1️⃣ Información general 2️⃣ ¿Cómo me inscribo? 3️⃣ Costos y promociones 4️⃣ Hablar con un asesor 5️⃣ Otra pregunta"
+        body_text = "👋 ¡Hola! Soy Farabot, tu asistente del Instituto Michael Faraday. Estoy aquí para ayudarte a conocer más sobre nuestro Bachillerato en Línea. \n ¿Con qué deseas comenzar? \n 📝 Selecciona una opción respondiendo con el número correspondiente: \n 1️⃣ Información general \n2️⃣ ¿Cómo me inscribo? \n3️⃣ Costos y promociones \n4️⃣ Hablar con un asesor \n5️⃣ Otra pregunta"
     elif "1" in texto:
-        body_text = "Seleccionaste la opción 1. Más info en https://dithermichel.com"
+        body_text = "----- 1️⃣ INFORMACIÓN GENERAL -----\n🎓 Nuestro bachillerato en línea es ideal si buscas estudiar desde casa, a tu ritmo, sin exámenes presenciales.\n📌 Dura 2 años.\n📅 Puedes comenzar cuando quieras.\n🌐 Modalidad 100% en línea con apoyo académico continuo.\n💻 100% en línea, sin asistir a planteles.\n🕒 Estudias a tu ritmo y desde cualquier lugar.\n📅 Acceso 24/7 a la plataforma\n🧑‍🏫 Asesorías personalizadas por WhatsApp y correo\n\n\n✅ Para ingresar necesitas: \n- Tener secundaria terminada \n- Ser mayor de 15 años \n- Contar con acceso a internet \n\n\n📁 Documentación:\n- Acta de nacimiento\n- CURP\n- Certificado de secundaria\n- Comprobante de domicilio \n\n 🏛️ Nuestro programa tiene validez oficial ante la SEP. \n - RVOE: xxxxxxxxxxxxx \n Puedes consultarlo directamente en la página oficial: \n 👉 Consultar RVOE en SEP \n 🏫 Al finalizar recibirás un certificado de bachillerato válido en todo México."
+    elif "2" in texto:
+        body_text = "Seleccionaste la opción 2. Más info en https://dithermichel.com"
+    elif "3" in texto:
+        body_text = "Seleccionaste la opción 3. Más info en https://dithermichel.com"
+    elif "4" in texto:
+        body_text = "Seleccionaste la opción 4. Más info en https://dithermichel.com"
+    elif "5" in texto:
+        body_text = "Seleccionaste la opción 5. Más info en https://dithermichel.com"    
     else:
-        body_text = "OTRA COOOOSAAAA"
+        body_text = "📝 Selecciona una opción respondiendo con el número correspondiente: \n 1️⃣ Información general \n2️⃣ ¿Cómo me inscribo? \n3️⃣ Costos y promociones \n4️⃣ Hablar con un asesor \n5️⃣ Otra pregunta"
 
     data = {
         "messaging_product": "whatsapp",
