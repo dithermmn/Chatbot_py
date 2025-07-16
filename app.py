@@ -102,7 +102,7 @@ def recibir_mensajes(req):
         return jsonify({'message':'EVENT_RECEIVED'})
 
 
-def enviar_mensajes_whatsapp(texto,numero):
+def enviar_mensajes_whatsapp(texto,number):
     
     texto = texto.lower () #formatea para que todo sea en minusculas
 
@@ -111,7 +111,7 @@ def enviar_mensajes_whatsapp(texto,numero):
         data={
             "messaging_product": "whatsapp",    
             "recipient_type": "individual",
-            "to": numero,
+            "to": number,
             "type": "text",
             "text": {
                 "preview_url": False,
@@ -122,7 +122,7 @@ def enviar_mensajes_whatsapp(texto,numero):
         data={
             "messaging_product": "whatsapp",    
             "recipient_type": "individual",
-            "to": numero,
+            "to": number,
             "type": "text",
             "text": {
                 "preview_url": False,
@@ -133,7 +133,7 @@ def enviar_mensajes_whatsapp(texto,numero):
         data={
             "messaging_product": "whatsapp",    
             "recipient_type": "individual",
-            "to": 524611777249,
+            "to": number,
             "type": "text",
             "text": {
                 "preview_url": False,
