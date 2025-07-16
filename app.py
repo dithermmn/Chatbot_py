@@ -1,160 +1,127 @@
-from flask import Flask, request, jsonify, render_template
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
-import http.client
-import json
+from flask import Flask, request, jsonify
+import requests
 
 app = Flask(__name__)
 
-# Configuración de la base de datos SQLite
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///metapython.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+# Tokens de Meta API
+ACCESS_TOKEN = "EAAVPtixyt4QBPKqrUQVLa2YaaZBkYwszDc3ZC5z0J05gdqpW01jpvFiPZA8FwEZAAY7lzrt3doVMDgCJh9DKVoOSYFEc03xynpsha0BfiK8OUXhEtCzbhoH0BxpEmRagC634WIeFrfi05qMQn7ZCddP9ZCSMwBEVZCeyWDgolEWTl3ecpPf8WUfxibKs3cO15fXhVPhQXPFXyq5zS9Syz1K35zBblZCPmQJlOvHEEuGTpL4dwz8ZD"
+PHONE_NUMBER_ID = "762799950241046"
+VERIFY_TOKEN = "FARABOT" #token webhook
+API_URL = f"https://graph.facebook.com/v22.0/762799950241046/messages"
 
-# Modelo de la tabla log
-class Log(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    fecha_y_hora = db.Column(db.DateTime, default=datetime.utcnow)
-    texto = db.Column(db.TEXT)
+user_id = "524611777249" # borrar esta 
 
-# Crear la tabla si no existe
-with app.app_context():
-    db.create_all()
-
-# Función para ordenar registros por fecha
-def ordenar_por_fecha_y_hora(registros):
-    return sorted(registros, key=lambda x: x.fecha_y_hora, reverse=True)
-
-@app.route('/')
-def index():
-    registros = Log.query.all()
-    registros_ordenados = ordenar_por_fecha_y_hora(registros)
-    return render_template('index.html', registros=registros_ordenados)
-
-# Guardar en la base de datos
-def agregar_mensajes_log(texto):
-    nuevo_registro = Log(texto=texto)
-    db.session.add(nuevo_registro)
-    db.session.commit()
-
-# Token para validación webhook
-TOKEN_FARABOT = "FARABOT"
-
-@app.route('/webhook', methods=['GET', 'POST'])
-def webhook():
-    if request.method == 'GET':
-        return verificar_token(request)
-    elif request.method == 'POST':
-        return recibir_mensajes(request)
-
-def verificar_token(req):
-    token = req.args.get('hub.verify_token')
-    challenge = req.args.get('hub.challenge')
-    if challenge and token == TOKEN_FARABOT:
-        return challenge
-    else:
-        return jsonify({'error': 'Token inválido'}), 401
-
-# Manejo del webhook POST
-def recibir_mensajes(req):
-    try:
-        req = request.get_json()
-        agregar_mensajes_log("JSON recibido:")
-        agregar_mensajes_log(json.dumps(req, indent=2))
-
-        entry = req['entry'][0]
-        changes = entry['changes'][0]
-        value = changes['value']
-        objeto_mensaje = value.get('messages')
-
-        if objeto_mensaje:
-            messages = objeto_mensaje[0]
-
-            if "type" in messages and messages["type"] == "interactive":
-                return jsonify({'message': 'EVENT_RECEIVED'})
-
-            if "text" in messages and "body" in messages["text"]:
-                text = messages["text"]["body"]
-                numero = messages["from"].strip()
-
-                print("Texto:", text)
-                print("Número:", numero)
-                agregar_mensajes_log(f"Texto: {text}")
-                agregar_mensajes_log(f"Número: {numero}")
-
-                enviar_mensajes_whatsapp(text, numero)
-                agregar_mensajes_log(f"{numero}: {text}")
-
-        return jsonify({'message': 'EVENT_RECEIVED'})
-
-    except Exception as e:
-        error_msg = f"Error en recibir_mensajes: {str(e)}"
-        print(error_msg)
-        agregar_mensajes_log(error_msg)
-        return jsonify({'message': 'EVENT_RECEIVED'})
-
-# Enviar respuesta por WhatsApp
-def enviar_mensajes_whatsapp(texto, numero):
-    texto = texto.lower().strip()
-
-    if "hola" in texto:
-        body_text = "👋 ¡Hola! Soy Farabot, tu asistente del Instituto Michael Faraday. Estoy aquí para ayudarte a conocer más sobre nuestro Bachillerato en Línea. \n ¿Con qué deseas comenzar? \n 📝 Selecciona una opción respondiendo con el número correspondiente: \n 1️⃣ Información general \n2️⃣ ¿Cómo me inscribo? \n3️⃣ Costos y promociones \n4️⃣ Hablar con un asesor \n5️⃣ Otra pregunta"
-    elif "1" in texto:
-        body_text = "----- 1️⃣ INFORMACIÓN GENERAL -----\n🎓 Nuestro bachillerato en línea es ideal si buscas estudiar desde casa, a tu ritmo, sin exámenes presenciales.\n📌 Dura 2 años.\n📅 Puedes comenzar cuando quieras.\n🌐 Modalidad 100% en línea con apoyo académico continuo.\n💻 100% en línea, sin asistir a planteles.\n🕒 Estudias a tu ritmo y desde cualquier lugar.\n📅 Acceso 24/7 a la plataforma\n🧑‍🏫 Asesorías personalizadas por WhatsApp y correo\n\n\n✅ Para ingresar necesitas: \n- Tener secundaria terminada \n- Ser mayor de 15 años \n- Contar con acceso a internet \n\n\n📁 Documentación:\n- Acta de nacimiento\n- CURP\n- Certificado de secundaria\n- Comprobante de domicilio \n\n 🏛️ Nuestro programa tiene validez oficial ante la SEP. \n - RVOE: xxxxxxxxxxxxx \n Puedes consultarlo directamente en la página oficial: \n 👉 Consultar RVOE en SEP \n 🏫 Al finalizar recibirás un certificado de bachillerato válido en todo México."
-    elif "2" in texto:
-        body_text = "Seleccionaste la opción 2. Más info en https://dithermichel.com"
-    elif "3" in texto:
-        body_text = "Seleccionaste la opción 3. Más info en https://dithermichel.com"
-    elif "4" in texto:
-        body_text = "Seleccionaste la opción 4. Más info en https://dithermichel.com"
-    elif "5" in texto:
-        body_text = "Seleccionaste la opción 5. Más info en https://dithermichel.com"    
-    else:
-        body_text = "📝 Selecciona una opción respondiendo con el número correspondiente: \n 1️⃣ Información general \n2️⃣ ¿Cómo me inscribo? \n3️⃣ Costos y promociones \n4️⃣ Hablar con un asesor \n5️⃣ Otra pregunta"
-
-    data = {
+# Menú principal
+def send_menu(user_id):
+    body = {
         "messaging_product": "whatsapp",
-        "recipient_type": "individual",
-        "to": 524611777249,
-        "type": "text",
-        "text": {
-            "preview_url": False,
-            "body": body_text
+        "to": user_id,
+        "type": "interactive",
+        "interactive": {
+            "type": "button",
+            "body": {"text": "📋 *Menú Principal:* Elige una opción:"},
+            "action": {
+                "buttons": [
+                    {"type": "reply", "reply": {"id": "opt1", "title": "Opción 1"}},
+                    {"type": "reply", "reply": {"id": "opt2", "title": "Opción 2"}},
+                    {"type": "reply", "reply": {"id": "opt3", "title": "Opción 3"}},
+                    {"type": "reply", "reply": {"id": "opt4", "title": "Opción 4"}},
+                    {"type": "reply", "reply": {"id": "opt5", "title": "Hablar con IA 🤖"}}
+                ]
+            }
         }
     }
+    requests.post(API_URL, headers={
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }, json=body)
 
-    data_json = json.dumps(data)
-
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer EAAVPtixyt4QBPCUDM8KmJ27ZCTQVCZCsUYMxRTRTVr6ZAvNMKgNjjTO4SkYdmLMLWnA0jBPjZACEtZBGbiZAHLi4uswIUVqe3TniZBYiZCZB6fvvoQk0phksZCsE7ywvO77baUmef3e8PCCPuWcw4wZC1aH0xrhht6qR3vHnJCYBblp8hLOedz9TkUOprgItXy63bzGFUSyIQDHMUVQYvyhV02Nj9o7IsQPZBCyStowkcI2Gvh2DVtAZD"
+# Función para enviar mensajes con botón de regreso
+def send_option(user_id, text):
+    body = {
+        "messaging_product": "whatsapp",
+        "to": user_id,
+        "type": "interactive",
+        "interactive": {
+            "type": "button",
+            "body": {"text": text},
+            "action": {
+                "buttons": [
+                    {"type": "reply", "reply": {"id": "menu", "title": "🔙 Regresar al menú"}}
+                ]
+            }
+        }
     }
+    requests.post(API_URL, headers={
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }, json=body)
 
-    connection = http.client.HTTPSConnection("graph.facebook.com")
+# Función para enviar texto simple
+def send_text(user_id, text):
+    body = {
+        "messaging_product": "whatsapp",
+        "to": user_id,
+        "type": "text",
+        "text": {"body": text}
+    }
+    requests.post(API_URL, headers={
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }, json=body)
+
+# Webhook para validación inicial con Meta
+@app.route("/webhook", methods=["GET"])
+def verify():
+    mode = request.args.get("hub.mode")
+    token = request.args.get("hub.verify_token")
+    challenge = request.args.get("hub.challenge")
+    if mode == "subscribe" and token == VERIFY_TOKEN:
+        return challenge, 200
+    return "Unauthorized", 403
+
+# Webhook de recepción de mensajes
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    data = request.get_json()
+    print("🔔 Webhook recibido:", data)
 
     try:
-        connection.request("POST", "/v22.0/762799950241046/messages", data_json, headers)
-        response = connection.getresponse()
-        status = response.status
-        reason = response.reason
-        body = response.read().decode()
+        entry = data["entry"][0]["changes"][0]["value"]
+        messages = entry.get("messages")
+        if messages:
+            msg = messages[0]
+            user_id = msg["from"]
+            msg_type = msg.get("type")
 
-        print("Status:", status)
-        print("Reason:", reason)
-        print("Body:", body)
+            # Si es mensaje interactivo (botón)
+            if msg_type == "interactive":
+                btn_id = msg["interactive"]["button_reply"]["id"]
 
-        agregar_mensajes_log(f"Status: {status}")
-        agregar_mensajes_log(f"Reason: {reason}")
-        agregar_mensajes_log(f"Body: {body}")
+                if btn_id == "opt1":
+                    send_option(user_id, "ℹ️ Información sobre la Opción 1")
+                elif btn_id == "opt2":
+                    send_option(user_id, "📄 Detalles de la Opción 2")
+                elif btn_id == "opt3":
+                    send_option(user_id, "📦 Contenido exclusivo de la Opción 3")
+                elif btn_id == "opt4":
+                    send_option(user_id, "🔧 Servicios de la Opción 4")
+                elif btn_id == "opt5":
+                    send_text(user_id, "🤖 Esta opción está en desarrollo. Por favor, espere a que una persona lo atienda.")
+                elif btn_id == "menu":
+                    send_menu(user_id)
 
+            # Si es mensaje de texto normal
+            elif msg_type == "text":
+                text = msg["text"]["body"].strip().lower()
+                # Si ya se envió el menú, pero no se presiona botón
+                send_text(user_id, "👤 Por favor, espere a que una persona lo atienda.")
+                # También puedes guardar estado por usuario con una base de datos si quieres algo más complejo
+                send_menu(user_id)
     except Exception as e:
-        error_msg = f"Error al enviar mensaje: {str(e)}"
-        print(error_msg)
-        agregar_mensajes_log(error_msg)
+        print("❌ Error en el webhook:", e)
 
-    finally:
-        connection.close()
+    return "OK", 200
 
-# Ejecutar servidor Flask
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80, debug=True)
+if __name__ == "__main__":
+    app.run(port=5000, debug=True)
