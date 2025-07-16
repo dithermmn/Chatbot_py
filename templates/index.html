@@ -2,41 +2,71 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mensajes Log</title>
-
+    <title>Log de WhatsApp Bot</title>
     <style>
-
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+        }
         table {
-            width: 80%;
             border-collapse: collapse;
-            margin: 20px auto;
+            width: 100%;
+            margin-bottom: 40px;
         }
         th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
+            border: 1px solid #ccc;
+            padding: 8px 12px;
             text-align: left;
         }
         th {
-            background-color: #f2f2f2;
+            background-color: #f4f4f4;
         }
-
+        .section-title {
+            margin-top: 40px;
+            font-size: 20px;
+            color: #34495e;
+        }
     </style>
 </head>
 <body>
-    <h2>Registro de Mensajes</h2>
 
+    <h1>📋 Historial de mensajes recibidos</h1>
     <table>
-        <tr>
-            <th> FECHA Y HORA </th>
-            <th> MENSAJE </th>
-        </tr>
-        {% for registro in registros %}
+        <thead>
             <tr>
-                <td>{{registro.fecha_y_hora}}</td>
-                <td>{{registro.texto}}</td>
+                <th>Fecha y Hora</th>
+                <th>Mensaje</th>
             </tr>
-        {% endfor %}
+        </thead>
+        <tbody>
+            {% for log in registros %}
+            <tr>
+                <td>{{ log.fecha_y_hora }}</td>
+                <td>{{ log.texto }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2 class="section-title">🛠️ Logs del sistema (prints del backend)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha y Hora</th>
+                <th>Mensaje del sistema</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in registros if 'Texto:' in log.texto or 'Número:' in log.texto or 'Status:' in log.texto or 'Body:' in log.texto %}
+            <tr>
+                <td>{{ log.fecha_y_hora }}</td>
+                <td>{{ log.texto }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
 
 </body>

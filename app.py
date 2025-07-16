@@ -21,7 +21,7 @@ class Log(db.Model):
 with app.app_context():
     db.create_all()
 
-# Función para ordenar registros por fecha y hora
+# Función para ordenar registros por fecha
 def ordenar_por_fecha_y_hora(registros):
     return sorted(registros, key=lambda x: x.fecha_y_hora, reverse=True)
 
@@ -31,13 +31,13 @@ def index():
     registros_ordenados = ordenar_por_fecha_y_hora(registros)
     return render_template('index.html', registros=registros_ordenados)
 
-# Función para guardar mensajes en la base de datos
+# Guardar en la base de datos
 def agregar_mensajes_log(texto):
     nuevo_registro = Log(texto=texto)
     db.session.add(nuevo_registro)
     db.session.commit()
 
-# Token de verificación para Meta
+# Token para validación webhook
 TOKEN_FARABOT = "FARABOT"
 
 @app.route('/webhook', methods=['GET', 'POST'])
@@ -50,18 +50,17 @@ def webhook():
 def verificar_token(req):
     token = req.args.get('hub.verify_token')
     challenge = req.args.get('hub.challenge')
-
     if challenge and token == TOKEN_FARABOT:
         return challenge
     else:
         return jsonify({'error': 'Token inválido'}), 401
 
-# Recepción de mensajes del webhook
+# Manejo del webhook POST
 def recibir_mensajes(req):
     try:
         req = request.get_json()
-        print("JSON recibido:")
-        print(json.dumps(req, indent=2))
+        agregar_mensajes_log("JSON recibido:")
+        agregar_mensajes_log(json.dumps(req, indent=2))
 
         entry = req['entry'][0]
         changes = entry['changes'][0]
@@ -71,7 +70,6 @@ def recibir_mensajes(req):
         if objeto_mensaje:
             messages = objeto_mensaje[0]
 
-            # Ignorar mensajes interactivos
             if "type" in messages and messages["type"] == "interactive":
                 return jsonify({'message': 'EVENT_RECEIVED'})
 
@@ -81,6 +79,8 @@ def recibir_mensajes(req):
 
                 print("Texto:", text)
                 print("Número:", numero)
+                agregar_mensajes_log(f"Texto: {text}")
+                agregar_mensajes_log(f"Número: {numero}")
 
                 enviar_mensajes_whatsapp(text, numero)
                 agregar_mensajes_log(f"{numero}: {text}")
@@ -88,10 +88,12 @@ def recibir_mensajes(req):
         return jsonify({'message': 'EVENT_RECEIVED'})
 
     except Exception as e:
-        print("Error:", str(e))
+        error_msg = f"Error en recibir_mensajes: {str(e)}"
+        print(error_msg)
+        agregar_mensajes_log(error_msg)
         return jsonify({'message': 'EVENT_RECEIVED'})
 
-# Envío de respuestas por WhatsApp
+# Enviar respuesta por WhatsApp
 def enviar_mensajes_whatsapp(texto, numero):
     texto = texto.lower().strip()
 
@@ -113,28 +115,38 @@ def enviar_mensajes_whatsapp(texto, numero):
         }
     }
 
-    data = json.dumps(data)
+    data_json = json.dumps(data)
 
     headers = {
         "Content-Type": "application/json",
-        "Authorization": "Bearer EAAVPtixyt4QBPOXksdZAZCd8fTKs4uquZAxRMdq8pxs65VZCAZBGOJIG7vTgUDFKmrYeoHk4gdqlIbh0OBmCjzYjVVwdXrdvrXyYZBQZAQOUKAZBN5WwlChaOwChrEdZCBZBavp7aIH6LiKNYp1ZAC4m99szQ2TImkySmZAIbgsIb1lpa8rnQGPJeZA19GI5tTS9HqlQGmoxODo6k008Mb7tjgE4JupRL1OPqgqsm2xk7LkC6HsEGrLEZD"  # ← Token de acceso válido
+        "Authorization": "Bearer EAAVPtixyt4QBPOXksdZAZCd8fTKs4uquZAxRMdq8pxs65VZCAZBGOJIG7vTgUDFKmrYeoHk4gdqlIbh0OBmCjzYjVVwdXrdvrXyYZBQZAQOUKAZBN5WwlChaOwChrEdZCBZBavp7aIH6LiKNYp1ZAC4m99szQ2TImkySmZAIbgsIb1lpa8rnQGPJeZA19GI5tTS9HqlQGmoxODo6k008Mb7tjgE4JupRL1OPqgqsm2xk7LkC6HsEGrLEZD"
     }
 
     connection = http.client.HTTPSConnection("graph.facebook.com")
 
     try:
-        connection.request("POST", "/v17.0/762799950241046/messages", data, headers)
+        connection.request("POST", "/v22.0/762799950241046/messages", data_json, headers)
         response = connection.getresponse()
-        print(response.status, response.reason)
-        print(response.read().decode())  # Muestra el detalle de la respuesta
+        status = response.status
+        reason = response.reason
+        body = response.read().decode()
+
+        print("Status:", status)
+        print("Reason:", reason)
+        print("Body:", body)
+
+        agregar_mensajes_log(f"Status: {status}")
+        agregar_mensajes_log(f"Reason: {reason}")
+        agregar_mensajes_log(f"Body: {body}")
 
     except Exception as e:
-        print("Error al enviar mensaje:", str(e))
-        agregar_mensajes_log(f"Error al enviar: {str(e)}")
+        error_msg = f"Error al enviar mensaje: {str(e)}"
+        print(error_msg)
+        agregar_mensajes_log(error_msg)
 
     finally:
         connection.close()
 
-# Ejecutar la app
+# Ejecutar servidor Flask
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
