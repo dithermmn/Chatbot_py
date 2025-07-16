@@ -98,7 +98,7 @@ def enviar_mensajes_whatsapp(texto, numero):
     texto = texto.lower().strip()
 
     if "hola" in texto:
-        body_text = "Hola, encuentra más información en https://dithermichel.com"
+        body_text = "👋 ¡Hola! Soy Farabot, tu asistente del Instituto Michael Faraday. Estoy aquí para ayudarte a conocer más sobre nuestro Bachillerato en Línea. ¿Con qué deseas comenzar? 📝 Selecciona una opción respondiendo con el número correspondiente: 1️⃣ Información general 2️⃣ ¿Cómo me inscribo? 3️⃣ Costos y promociones 4️⃣ Hablar con un asesor 5️⃣ Otra pregunta"
     elif "1" in texto:
         body_text = "Seleccionaste la opción 1. Más info en https://dithermichel.com"
     else:
@@ -107,7 +107,7 @@ def enviar_mensajes_whatsapp(texto, numero):
     data = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
-        "to": numero,
+        "to": 524611777249,
         "type": "text",
         "text": {
             "preview_url": False,
