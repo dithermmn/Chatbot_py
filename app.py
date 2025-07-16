@@ -102,8 +102,11 @@ def recibir_mensajes(req):
 
 
 def enviar_mensajes_whatsapp(texto,number):
-
+    
     number_cleaned = number.replace("+", "").replace(" ", "").replace("-", "") #agregue yo
+
+    print(f"DEBUG: Número recibido en enviar_mensajes_whatsapp (argumento 'number'): '{number}'")
+
     texto = texto.lower () #formatea para que todo sea en minusculas
 
 #Programar Mensaje
