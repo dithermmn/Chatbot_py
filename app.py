@@ -111,7 +111,7 @@ def enviar_mensajes_whatsapp(texto,number):
         data={
             "messaging_product": "whatsapp",    
             "recipient_type": "individual",
-            "to": 524611777249,
+            "to": number,
             "type": "text",
             "text": {
                 "preview_url": False,
@@ -133,7 +133,7 @@ def enviar_mensajes_whatsapp(texto,number):
         data={
             "messaging_product": "whatsapp",    
             "recipient_type": "individual",
-            "to": number,
+            "to": 524611777249,
             "type": "text",
             "text": {
                 "preview_url": False,
@@ -146,7 +146,7 @@ def enviar_mensajes_whatsapp(texto,number):
 
     headers = {
         "Content-Type" : "application/json",
-        "Authorization" : "Bearer EAAVPtixyt4QBPMjBoatNd0b0w7vWEbjJEQ4TeiGYSQpetsB9dy0PCCZAilsOtvvjIqhNl58dZBD8mydKSAPpgZAjJfPQaPpGOZAgSHexTgwu0UnLgIjEjNUzZCIpYdCZAkJri8O4niik2HnrZBuZCwl5bwVYdieuY90Dl00JitplYXjhaWTb6VEnumujDDxZAEkidl8BbcN5y2RpGOEZCpAbpVagA2uQp254EeTnngGZBcXYJVzzwZDZD" # TOKEN DE META DEVELOPERS
+        "Authorization" : "Bearer EAAVPtixyt4QBPOXksdZAZCd8fTKs4uquZAxRMdq8pxs65VZCAZBGOJIG7vTgUDFKmrYeoHk4gdqlIbh0OBmCjzYjVVwdXrdvrXyYZBQZAQOUKAZBN5WwlChaOwChrEdZCBZBavp7aIH6LiKNYp1ZAC4m99szQ2TImkySmZAIbgsIb1lpa8rnQGPJeZA19GI5tTS9HqlQGmoxODo6k008Mb7tjgE4JupRL1OPqgqsm2xk7LkC6HsEGrLEZD" # TOKEN DE META DEVELOPERS
     }
 
     connection = http.client.HTTPSConnection("graph.facebook.com")
