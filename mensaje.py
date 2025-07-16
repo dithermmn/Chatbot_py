@@ -10,14 +10,16 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
-def enviar_menu(number):
+def enviar_menu(numero):
     data = {
         "messaging_product": "whatsapp",
         "to": 524611777249,
         "type": "interactive",
         "interactive": {
             "type": "button",
-            "body": {"text": "📋 *Menú Principal:* Elige una opción:"},
+            "body": {
+                "text": "📋 *Menú Principal:* Elige una opción:"
+            },
             "action": {
                 "buttons": [
                     {"type": "reply", "reply": {"id": "opt1", "title": "Opción 1"}},
@@ -31,7 +33,7 @@ def enviar_menu(number):
     }
     requests.post(API_URL, headers=HEADERS, json=data)
 
-def enviar_opcion(number, texto):
+def enviar_opcion(numero, texto):
     data = {
         "messaging_product": "whatsapp",
         "to": 524611777249,
@@ -48,7 +50,7 @@ def enviar_opcion(number, texto):
     }
     requests.post(API_URL, headers=HEADERS, json=data)
 
-def enviar_texto(number, texto):
+def enviar_texto(numero, texto):
     data = {
         "messaging_product": "whatsapp",
         "to": 524611777249,

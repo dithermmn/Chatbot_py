@@ -3,24 +3,42 @@ from datetime import datetime
 
 db = SQLAlchemy()
 
-# Modelo de la tabla de logs
 class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     fecha_y_hora = db.Column(db.DateTime, default=datetime.utcnow)
-    texto = db.Column(db.TEXT)
+    numero = db.Column(db.String(20))
+    texto = db.Column(db.Text)
 
-# Inicializa la base de datos y crea las tablas si no existen
+class EstadoUsuario(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    numero = db.Column(db.String(20), unique=True)
+    recibio_menu = db.Column(db.Boolean, default=False)
+
 def init_db(app):
     db.init_app(app)
     with app.app_context():
         db.create_all()
 
-# Guarda mensajes en la base de datos
-def agregar_mensajes_log(texto):
-    nuevo = Log(texto=texto)
+def agregar_mensajes_log(texto, numero=""):
+    nuevo = Log(numero=numero, texto=texto)
     db.session.add(nuevo)
     db.session.commit()
 
-# Ordena registros por fecha descendente
-def ordenar_por_fecha_y_hora(registros):
-    return sorted(registros, key=lambda x: x.fecha_y_hora, reverse=True)
+def marcar_menu_enviado(numero):
+    estado = EstadoUsuario.query.filter_by(numero=numero).first()
+    if not estado:
+        estado = EstadoUsuario(numero=numero, recibio_menu=True)
+        db.session.add(estado)
+    else:
+        estado.recibio_menu = True
+    db.session.commit()
+
+def ya_envio_menu(numero):
+    estado = EstadoUsuario.query.filter_by(numero=numero).first()
+    return estado.recibio_menu if estado else False
+
+def reiniciar_estado(numero):
+    estado = EstadoUsuario.query.filter_by(numero=numero).first()
+    if estado:
+        estado.recibio_menu = False
+        db.session.commit()
