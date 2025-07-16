@@ -1,8 +1,9 @@
 import requests
 
-ACCESS_TOKEN = "TU_ACCESS_TOKEN"
-PHONE_NUMBER_ID = "TU_PHONE_NUMBER_ID"
-API_URL = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
+ACCESS_TOKEN = "EAAVPtixyt4QBPEpSC5NKIYsLqcMqM4TZBEb8Yi61JnZAseUZAz5SgyiCty5tXuBe5sZB75fQw8QbBcYeihpasWnGk5Rur3MmCkLaLv6xw0g1W1S2pX04bSebHPM4axbZBZBT0lUyzjZAxt0HcGbWADytJdcO9o4rhc5CBZBPJFxDzjgEsRPxP6okEYjtEtRx01n89yzRR7PeqjRtf7ZCI4vCOrrUBV7o6nd3F30QbJJ6iWB62tCEZD"
+PHONE_NUMBER_ID = "762799950241046"
+API_URL = f"https://graph.facebook.com/v22.0/762799950241046/messages"
+numero = "524611777249" # borrar esta linea
 
 HEADERS = {
     "Authorization": f"Bearer {ACCESS_TOKEN}",
@@ -16,9 +17,7 @@ def enviar_menu(numero):
         "type": "interactive",
         "interactive": {
             "type": "button",
-            "body": {
-                "text": "📋 *Menú Principal:* Elige una opción:"
-            },
+            "body": {"text": "📋 *Menú Principal:* Elige una opción:"},
             "action": {
                 "buttons": [
                     {"type": "reply", "reply": {"id": "opt1", "title": "Opción 1"}},
