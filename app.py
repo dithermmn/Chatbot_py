@@ -111,7 +111,7 @@ def enviar_mensajes_whatsapp(texto,number):
         data={
             "messaging_product": "whatsapp",    
             "recipient_type": "individual",
-            "to": number,
+            "to": number_cleaned,
             "type": "text",
             "text": {
                 "preview_url": False,
@@ -122,7 +122,7 @@ def enviar_mensajes_whatsapp(texto,number):
         data={
             "messaging_product": "whatsapp",    
             "recipient_type": "individual",
-            "to": number,
+            "to": number_cleaned,
             "type": "text",
             "text": {
                 "preview_url": False,
