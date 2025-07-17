@@ -13,6 +13,7 @@ TOKEN_VERIFICACION = "FARABOT" # Token validar webhook
 ACCESS_TOKEN = os.getenv("EAAVPtixyt4QBPJUZBUbCJA1RMUrACVqYD5BMflsMRXmMNCx43oBcrZCqNSi7tCGaAK1cKoI9uGoCL3Q3PZClZBQBt19DZA975nhXVuRTNZBWOhFObWL9tS5uX9odNewXdIp9eNSaJKnE0zzFJvy9bdfanPOIKfuvwjqW10kddTrv9CboJs9n6vX0xGEAFLeP1um4HZA5HfI7on5AcBnrv5XtXbMLyihHIV3DDBRwFCDIKvlJ1oZD")
 PHONE_NUMBER_IDE ="762799950241046" #Identificador del numero (del numero de faraday)
 API_URL = f"https://graph.facebook.com/v22.0/{PHONE_NUMBER_IDE}/messages" # Url de la app
+numero = "524611777249" # borrar esta
 
 # Botones del menú definidos una vez
 BOTONES_MENU = [
@@ -26,7 +27,7 @@ BOTONES_MENU = [
 
 # Configuración De Flask
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///metapython.db'  # Base de datos local SQLite
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///instance/metapython.db' # Base de datos local SQLite
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
