@@ -1,80 +1,312 @@
+# Importación de librerías necesarias
 from flask import Flask, request, jsonify, render_template
-from basedatos import db, Log, init_db, agregar_mensajes_log, marcar_menu_enviado, ya_envio_menu, reiniciar_estado
-from mensaje import enviar_menu, enviar_opcion, enviar_texto
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
+import requests # libreria - hacer peticiones HTTPS
+import os
 import json
 
-TOKEN_VERIFICACION = "FARABOT"
 
+#------------------ VARIABLES ------------------
+
+TOKEN_VERIFICACION = "FARABOT" # Token validar webhook
+ACCESS_TOKEN = os.getenv("WHATSAPP_ACCESS_TOKEN")
+PHONE_NUMBER_IDE ="762799950241046" #Identificador del numero (del numero de faraday)
+API_URL = f"https://graph.facebook.com/v22.0/{PHONE_NUMBER_IDE}/messages" # Url de la app
+
+# Botones del menú definidos una vez
+BOTONES_MENU = [
+    {"id": "op1", "title": "1️⃣ Información general"},
+    {"id": "op2", "title": "2️⃣ Inscripción"},
+    {"id": "op3", "title": "3️⃣ Costos y Promociones"},
+    {"id": "op4", "title": "4️⃣ Asesor"},
+    {"id": "op5", "title": "5️⃣ Otra pregunta"},
+]
+#------------------  Base de Datos Y Flask ------------------
+
+# Configuración De Flask
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///metapython.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///metapython.db'  # Base de datos local SQLite
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 
-init_db(app)
+# Modelo (tabla) guardar mensajes 
+class Mensaje(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    numero = db.Column(db.String(20))
+    mensaje = db.Column(db.Text)
+    fecha = db.Column(db.DateTime, default=datetime.now) 
+ 
 
+# Modelo (tabla) guardar logs
+class Log(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    contenido = db.Column(db.Text)
+    fecha = db.Column(db.DateTime, default=datetime.now)
+
+# Crear la tabla en la base de datos si no existe
+with app.app_context():
+    db.create_all()
+
+# -------------> FUNCIONES DE BD
+
+# Función - guardar mensajes en la BD
+def agregar_mensajes_log(texto):
+    log = Log(contenido=texto)
+    db.session.add(log)
+    db.session.commit()
+
+# -------------> HTML
+
+# Ruta raíz que muestra los mensajes en HTML
 @app.route('/')
 def index():
-    registros = Log.query.order_by(Log.fecha_y_hora.desc()).all()
-    return render_template('index.html', registros=registros)
+    logs = Log.query.order_by(Log.fecha.desc()).all()
+    return render_template('index.html', logs=logs)
 
+
+#------------------ WEBHOOK ------------------ 
+# ----> Configurcion del token para validacion
+
+# Ruta principal del webhook 
 @app.route('/webhook', methods=['GET', 'POST'])
 def webhook():
     if request.method == 'GET':
-        return verificar_token(request)
-    elif request.method == 'POST':
-        return recibir_mensajes()
+        token = request.args.get("hub.verify_token") # verificcion del token
+        challenge = request.args.get("hub.challenge")
+        if token == TOKEN_VERIFICACION:
+            return challenge
+        return "Token inválido", 403
 
-def verificar_token(req):
-    token = req.args.get('hub.verify_token')
-    challenge = req.args.get('hub.challenge')
-    if token == TOKEN_VERIFICACION and challenge:
-        return challenge
-    return jsonify({'error': 'Token inválido'}), 401
-
-def recibir_mensajes():
-    try:
+    if request.method == 'POST':
         data = request.get_json()
-        agregar_mensajes_log(json.dumps(data, indent=2))
+        try:
+            agregar_mensajes_log("📩 Entrada:\n" + json.dumps(data))
+            procesar_mensaje(data)
+            return "OK", 200
+        except Exception as e:
+            error = f"❌ Error en webhook: {str(e)}"
+            print(error)
+            agregar_mensajes_log(error)
+            return "Error", 500
 
-        messages = data['entry'][0]['changes'][0]['value'].get('messages')
-        if not messages:
-            return jsonify({'message': 'NO_MESSAGES'})
+#------------------ Codigo Del MENSAJE ------------------ 
 
-        msg = messages[0]
-        numero = msg['from']
-        tipo = msg.get('type')
+# 1.- Procesar los mensajes recibidos desde WhatsApp
 
-        # Botón presionado
-        if tipo == "interactive":
-            btn_id = msg["interactive"]["button_reply"]["id"]
+def procesar_mensaje(data):
+    entry = data.get("entry", [{}])[0]
+    changes = entry.get("changes", [{}])[0]
+    value = changes.get("value", {})
+    mensajes = value.get("messages")
+    
+    if mensajes:
+        msg = mensajes[0]
+        numero = msg.get("from", "").strip()
 
-            if btn_id == "opt1":
-                enviar_opcion(numero, "📘 Esta es la información de la opción 1.")
-            elif btn_id == "opt2":
-                enviar_opcion(numero, "📗 Detalles completos de la opción 2.")
-            elif btn_id == "opt3":
-                enviar_opcion(numero, "📦 Contenido exclusivo de la opción 3.")
-            elif btn_id == "opt4":
-                enviar_opcion(numero, "🛠️ Servicios disponibles en la opción 4.")
-            elif btn_id == "opt5":
-                enviar_texto(numero, "🤖 Esta opción está en desarrollo. Por favor espere a que una persona lo atienda.")
-            elif btn_id == "menu":
-                enviar_menu(numero)
+        # Guardar mensaje si es texto
+        if msg.get("type") == "text":
+            texto = msg.get("text", {}).get("body", "").strip()
+            nuevo = Mensaje(numero=numero, mensaje=texto)
+            db.session.add(nuevo)
+            db.session.commit()
+            agregar_mensajes_log(f"{numero}: {texto}")
+            enviar_menu(numero)
 
-            reiniciar_estado(numero)
-
-        # Mensaje de texto
-        elif tipo == "text":
-            if not ya_envio_menu(numero):
-                enviar_menu(numero)
-                marcar_menu_enviado(numero)
+        # Si el usuario presionó botón
+        elif msg.get("type") == "interactive":
+            opcion = msg.get("interactive", {}).get("button_reply", {}).get("id")
+            if opcion:
+                responder_seleccion(opcion, numero)
             else:
-                enviar_texto(numero, "🕐 Gracias por tu mensaje. Por favor espere a que una persona lo atienda.")
-                reiniciar_estado(numero)
+                enviar_menu(numero)
 
-        return jsonify({'message': 'EVENT_RECEIVED'})
-    except Exception as e:
-        agregar_mensajes_log(f"❌ Error en webhook: {str(e)}")
-        return jsonify({'message': 'ERROR'})
-        
+        else:
+            # Otros tipos de mensaje
+            enviar_menu(numero)
+    else:
+        # No hay mensajes, reenviar menú (posible timeout o interacción no reconocida)
+        contactos = value.get("contacts", [{}])
+        if contactos:
+            numero = contactos[0].get("wa_id", "")
+            if numero:
+                enviar_menu(numero, recordar=True)
+
+# ------------->  2.- Función De Respuestas
+
+def responder_seleccion(opcion, numero):
+    if opcion == "op1":
+        texto = ("""📘 *Información general*:\n\n
+                 
+                🎓 Nuestro bachillerato en línea es ideal si buscas estudiar desde casa, a tu ritmo, sin exámenes presenciales.\n
+                📌 Dura 2 años.\n
+                📅 Puedes comenzar cuando quieras.\n
+                🌐 Modalidad 100% en línea con apoyo académico continuo.\n
+                💻 100% en línea, sin asistir a planteles.\n
+                🕒 Estudias a tu ritmo y desde cualquier lugar.\n
+                📅 Acceso 24/7 a la plataforma\n
+                🧑‍🏫 Asesorías personalizadas por WhatsApp y correo\n\n\n
+                 
+
+                ✅ Para ingresar necesitas:\n
+                - Tener secundaria terminada\n
+                - Ser mayor de 15 años\n
+                - Contar con acceso a internet\n\n\n
+                 
+
+                📁 Documentación:\n
+                - Acta de nacimiento\n
+                - CURP\n
+                - Certificado de secundaria\n
+                - Comprobante de domicilio\n\n\n
+                 
+
+                🏛️ Nuestro programa tiene validez oficial ante la SEP.\n
+                - RVOE: xxxxxxxxxxxxx\n\n
+                 
+                Puedes consultarlo directamente en la página oficial:\n
+                👉 Consultar RVOE en SEP\n\n
+                 
+                🏫 Al finalizar recibirás un certificado de bachillerato válido en todo México.\n\n\n
+                 
+
+                📄 Ver folleto informativo (PDF)\n\n""")
+        enviar_boton_regreso(texto, numero)
+
+    elif opcion == "op2":
+        texto = ("""📋 *¿Cómo me inscribo?*\n\n
+                 
+                 ✍️ ¡El proceso es muy sencillo! Solo sigue estos pasos:\n\n
+
+                1. Llena este formulario: 👉 Formulario de inscripción\n
+                2. Realiza el pago de inscripción.\n
+                3. Un asesor se pondrá en contacto contigo para verificar tu información.\n\n\n
+                 
+
+                📄 Documentos que necesitas:\n\n
+                 
+                - Acta de nacimiento\n
+                - CURP\n
+                - Comprobante de domicilio\n
+                - Certificado de secundaria\n\n""")
+        enviar_boton_regreso(texto, numero)
+
+    elif opcion == "op3":
+        texto = ("💰 *Costos y promociones*:\n\n" \
+        ""
+                 """💰 Nuestro modelo es accesible y sin pagos ocultos.\n
+                🔹 Inscripción Y Reinscripciones: $XXX MXN\n
+                🔹 Mensualidad: $XXX MXN\n\n\n
+
+
+                🎁 Promoción actual: Inscripción con 50% de descuento.\n\n\n
+
+
+                📆 Aceptamos pagos por:\n
+                - Transferencia\n
+                - OXXO\n
+                - PayPal\n""")
+        enviar_boton_regreso(texto, numero)
+
+    elif opcion == "op4":
+        texto = ("🧑‍💼 *Hablar con asesor*:\n\n"
+                 "Te conectaremos con un asesor pronto.")
+        enviar_boton_regreso(texto, numero)
+    elif opcion == "op5":
+        texto = ("🕐 *Otra pregunta*:\n\n"
+                 "Espera a personal, tu pregunta será respondida en breve.")
+        enviar_texto(numero, texto)
+    elif opcion == "menu":
+        enviar_menu(numero)
+    else:
+        enviar_menu(numero)
+
+
+# -------------> Funcion Envio - MENU PRINCIPAL 
+
+def enviar_menu(numero, recordar=False):
+    texto = "👋 Hola, soy Farabot.\nSelecciona una opción para continuar:" if not recordar else "⚠️ Por favor selecciona una opción del menú:"
+    botones = [{"type": "reply", "reply": {"id": b["id"], "title": b["title"]}} for b in BOTONES_MENU]
+
+    data = {
+        "messaging_product": "whatsapp",
+        "to": numero,
+        "type": "interactive",
+        "interactive": {
+            "type": "button",
+            "body": {"text": texto},
+            "action": {"buttons": botones}
+        }
+    }
+    enviar_peticion(data)
+
+# -------------> Función - Boton de "regresar al menu" 
+
+def enviar_boton_regreso(texto, numero):
+    data = {
+        "messaging_product": "whatsapp",
+        "to": numero,
+        "type": "interactive",
+        "interactive": {
+            "type": "button",
+            "body": {"text": texto},
+            "action": {
+                "buttons": [
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": "menu",
+                            "title": "🔙 Regresar al menú"
+                        }
+                    }
+                ]
+            }
+        }
+    }
+    enviar_peticion(data)
+
+# -------------> Configuracion para mandar mensaje
+
+# Función para enviar mensajes de texto simples
+def enviar_texto(numero, texto):
+    data = {
+        "messaging_product": "whatsapp",
+        "to": numero,
+        "type": "text",
+        "text": {"body": texto}
+    }
+    enviar_peticion(data)
+
+#------------------ Envia peticion HTTP ------------------ 
+
+# Función base que envía cualquier mensaje por API
+def enviar_peticion(data):
+    if not ACCESS_TOKEN:
+        error = "⚠️ ACCESS_TOKEN no configurado. Establece la variable de entorno."
+        print(error)
+        agregar_mensajes_log(error)
+        return
+
+    try:
+        response = requests.post(
+            API_URL,
+            headers={
+                "Authorization": f"Bearer {ACCESS_TOKEN}",
+                "Content-Type": "application/json"
+            },
+            json=data,
+            timeout=10
+        )
+        response.raise_for_status()
+        body = response.text
+        print("📤 Enviado:", body)
+        agregar_mensajes_log("Respuesta WhatsApp:\n" + body)
+    except requests.exceptions.RequestException as e:
+        error = f"Error al enviar mensaje: {str(e)}"
+        print(error)
+        agregar_mensajes_log(error)
+
+
+#------------------ Iniciar servidor ------------------ 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
