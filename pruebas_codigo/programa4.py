@@ -12,7 +12,7 @@ import json
 TOKEN_VERIFICACION = "FARABOT" # Token validar webhook
 ACCESS_TOKEN = os.getenv("EAAVPtixyt4QBPJUZBUbCJA1RMUrACVqYD5BMflsMRXmMNCx43oBcrZCqNSi7tCGaAK1cKoI9uGoCL3Q3PZClZBQBt19DZA975nhXVuRTNZBWOhFObWL9tS5uX9odNewXdIp9eNSaJKnE0zzFJvy9bdfanPOIKfuvwjqW10kddTrv9CboJs9n6vX0xGEAFLeP1um4HZA5HfI7on5AcBnrv5XtXbMLyihHIV3DDBRwFCDIKvlJ1oZD")
 PHONE_NUMBER_IDE ="762799950241046" #Identificador del numero (del numero de faraday)
-API_URL = f"https://graph.facebook.com/v22.0/762799950241046/messages" # Url de la app
+API_URL = f"https://graph.facebook.com/v22.0/{PHONE_NUMBER_IDE}/messages" # Url de la app
 
 # Botones del menú definidos una vez
 BOTONES_MENU = [
@@ -111,26 +111,26 @@ def procesar_mensaje(data):
             db.session.add(nuevo)
             db.session.commit()
             agregar_mensajes_log(f"{numero}: {texto}")
-            enviar_menu(524611777249)
+            enviar_menu(numero)
 
         # Si el usuario presionó botón
         elif msg.get("type") == "interactive":
             opcion = msg.get("interactive", {}).get("button_reply", {}).get("id")
             if opcion:
-                responder_seleccion(opcion, 524611777249)
+                responder_seleccion(opcion, numero)
             else:
-                enviar_menu(524611777249)
+                enviar_menu(numero)
 
         else:
             # Otros tipos de mensaje
-            enviar_menu(524611777249)
+            enviar_menu(numero)
     else:
         # No hay mensajes, reenviar menú (posible timeout o interacción no reconocida)
         contactos = value.get("contacts", [{}])
         if contactos:
             numero = contactos[0].get("wa_id", "")
             if numero:
-                enviar_menu(524611777249, recordar=True)
+                enviar_menu(numero, recordar=True)
 
 # ------------->  2.- Función De Respuestas
 
@@ -171,7 +171,7 @@ def responder_seleccion(opcion, numero):
                  
 
                 📄 Ver folleto informativo (PDF)\n\n""")
-        enviar_boton_regreso(texto, 524611777249)
+        enviar_boton_regreso(texto, numero)
 
     elif opcion == "op2":
         texto = ("""📋 *¿Cómo me inscribo?*\n\n
@@ -189,7 +189,7 @@ def responder_seleccion(opcion, numero):
                 - CURP\n
                 - Comprobante de domicilio\n
                 - Certificado de secundaria\n\n""")
-        enviar_boton_regreso(texto, 524611777249)
+        enviar_boton_regreso(texto, numero)
 
     elif opcion == "op3":
         texto = ("💰 *Costos y promociones*:\n\n" \
@@ -206,25 +206,25 @@ def responder_seleccion(opcion, numero):
                 - Transferencia\n
                 - OXXO\n
                 - PayPal\n""")
-        enviar_boton_regreso(texto, 524611777249)
+        enviar_boton_regreso(texto, numero)
 
     elif opcion == "op4":
         texto = ("🧑‍💼 *Hablar con asesor*:\n\n"
                  """🕘 Horarios de atención:\n
                 - Lunes a Viernes de 9:00 a.m. a 6:00 p.m.\n
                 - Sábados de 10:00 a.m. a 2:00 p.m.\n\n""")
-        enviar_boton_regreso(texto, 524611777249)
+        enviar_boton_regreso(texto, numero)
 
     elif opcion == "op5":
         texto = ("🕐 *Otra pregunta*:\n\n"
                  """✏️ Por favor escribe tu pregunta y haré lo posible por ayudarte.\n
                 Si no puedo resolverla, te contactaré con un asesor humano.\n\n""")
-        enviar_texto(524611777249, texto)
+        enviar_texto(numero, texto)
 
     elif opcion == "menu":
-        enviar_menu(524611777249)
+        enviar_menu(numero)
     else:
-        enviar_menu(524611777249)
+        enviar_menu(numero)
 
 
 # -------------> Funcion Envio - MENU PRINCIPAL 
@@ -235,7 +235,7 @@ def enviar_menu(numero, recordar=False):
 
     data = {
         "messaging_product": "whatsapp",
-        "to": 524611777249,
+        "to": numero,
         "type": "interactive",
         "interactive": {
             "type": "button",
@@ -250,7 +250,7 @@ def enviar_menu(numero, recordar=False):
 def enviar_boton_regreso(texto, numero):
     data = {
         "messaging_product": "whatsapp",
-        "to": 524611777249,
+        "to": numero,
         "type": "interactive",
         "interactive": {
             "type": "button",
@@ -276,7 +276,7 @@ def enviar_boton_regreso(texto, numero):
 def enviar_texto(numero, texto):
     data = {
         "messaging_product": "whatsapp",
-        "to": 524611777249,
+        "to": numero,
         "type": "text",
         "text": {"body": texto}
     }
