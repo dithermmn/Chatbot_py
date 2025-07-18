@@ -9,7 +9,7 @@ import json
 #------------------ VARIABLES ------------------
 
 TOKEN_VERIFICACION = "FARABOT" # Token de seguridad para el webhook
-ACCESS_TOKEN = "EAAVPtixyt4QBPHoxc6NyJqUznpZCZCDUehcROghlUlJt1ZAnagyO5OwRWlSPCvZAaZBYRwZAMTg6U6zCOB7UJq3I8gsb0JMkREYyQ8EO39jCfMJ0hHOnHF8OHioDkwWxSeSHawkWc1WlWbnj3TDZBZAUXMZAPybVucWUFg4ZCFNgwCKZCV0Aur4L1IFXwvRL6Ud9Fsa2J0tkVCdOumSZCZAZCqI5bp3o3xnyPGY4nHBlrwXEa8ZBGurqlUo"
+ACCESS_TOKEN = "EAAVPtixyt4QBPGeWmrCcvoFI60uf9Vwzfv9PVJr1HYQbq9Shg1IjznkPZA489Pq7uCwZAfXbChRuEwJOgVRgpMa9HAyppKLVDnaslXkGNvAGiZBzE43ZBElsSMaNtHbVcDcKbvlECZBZAVkM8nCDsVUhGkRciiMiHXZBsm0jofUP5NSh3iLn858jpEvtWfha1sgI6X1DGnwtb2KcfWj6NgVcwZAStLjqMDFgAIcKEMqQW632hAZDZD"
 PHONE_NUMBER_IDE ="762799950241046" #Identificador del numero (del numero de faraday)
 API_URL = f"https://graph.facebook.com/v22.0/762799950241046/messages" # Url de la app
 
