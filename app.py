@@ -152,9 +152,9 @@ def enviar_menu(numero, recordar=False):
             },
             "action": {
                 "buttons": [
-                    {"type": "reply", "reply": {"id": "op1", "title": "1️⃣ Informacion general"}},
+                    {"type": "reply", "reply": {"id": "op1", "title": "1️⃣ Informacion"}},
                     {"type": "reply", "reply": {"id": "op2", "title": "2️⃣ Inscripción"}},
-                    {"type": "reply", "reply": {"id": "op3", "title": "3️⃣ Costos y Promocciones"}},
+                    {"type": "reply", "reply": {"id": "op3", "title": "3️⃣ Costo"}},
                 ]
             }
         }
@@ -179,7 +179,7 @@ def enviar_boton_regreso(texto, numero):
                         "type": "reply",
                         "reply": {
                             "id": "menu",
-                            "title": "🔙 Regresar al menú"
+                            "title": "🔙 Menú"
                         }
                     }
                 ]
