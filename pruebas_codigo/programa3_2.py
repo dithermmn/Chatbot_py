@@ -9,14 +9,8 @@ import json
 #------------------ VARIABLES ------------------
 
 TOKEN_VERIFICACION = "FARABOT" # Token de seguridad para el webhook
-ACCESS_TOKEN = "EAAVPtixyt4QBPHoxc6NyJqUznpZCZCDUehcROghlUlJt1ZAnagyO5OwRWlSPCvZAaZBYRwZAMTg6U6zCOB7UJq3I8gsb0JMkREYyQ8EO39jCfMJ0hHOnHF8OHioDkwWxSeSHawkWc1WlWbnj3TDZBZAUXMZAPybVucWUFg4ZCFNgwCKZCV0Aur4L1IFXwvRL6Ud9Fsa2J0tkVCdOumSZCZAZCqI5bp3o3xnyPGY4nHBlrwXEa8ZBGurqlUo"
+ACCESS_TOKEN = "EAAVPtixyt4QBPPSa3QyZCLfWy3F2ZCPgamCZBxctpxV2OojPrjIdR9QXZBylCcA9uXdlCTeKjBau1A1lsqcSASNCU8zIuo7EHZAK2sqn6aomnwcRKl5bNC9T8U60aNy26FsNOavkf86vby0erZBMLve7Tf09dfcdZB7A7ZAKMNXZB6G37fnPjWjciVEzSVkFK3569zzekmZAJVf0p6B6yRQlNGOQ1hUoACd9zt1gA2ZBxqCFEZCuoEsZD"
 PHONE_NUMBER_IDE ="762799950241046" #Identificador del numero (del numero de faraday)
-API_URL = f"https://graph.facebook.com/v22.0/762799950241046/messages" # Url de la app
-
-HEADERS = {
-    "Authorization": f"Bearer {ACCESS_TOKEN}",
-    "Content-Type": "application/json"
-}
 
 #------------------  Base de Datos Y Flask ------------------
 
@@ -126,20 +120,16 @@ def recibir_mensajes(req):
 
 def responder_seleccion(opcion, numero):
     if opcion == "op1":
-        texto = "📘 *Información general*:\n\nBachillerato en línea 100% flexible, 2 años de duración, sin exámenes presenciales.\n\n"
+        texto = ("""📘 *Información general*:\n\n🎓 Nuestro bachillerato en línea es ideal si buscas estudiar desde casa, a tu ritmo, sin exámenes presenciales.\n\n📌 Dura 2 años.\n📅 Puedes comenzar cuando quieras.\n🌐 Modalidad 100% en línea con apoyo académico continuo.\n💻 100% en línea, sin asistir a planteles.\n🕒 Estudias a tu ritmo y desde cualquier lugar.\n📅 Acceso 24/7 a la plataforma\n🧑‍🏫 Asesorías personalizadas por WhatsApp y correo\n\n\n✅ Para ingresar necesitas:\n- Tener secundaria terminada\n- Ser mayor de 15 años\n- Contar con acceso a internet\n\n\n📁 Documentación:\n- Acta de nacimiento\n- CURP\n- Certificado de secundaria\n- Comprobante de domicilio\n\n\n🏛️ Nuestro programa tiene validez oficial ante la SEP.\n- RVOE: xxxxxxxxxxxxx\n\nPuedes consultarlo directamente en la página oficial:\n👉 Consultar RVOE en SEP\n\n🏫 Al finalizar recibirás un certificado de bachillerato válido en todo México.\n\n\n""")
         enviar_boton_regreso(texto, numero)
+
     elif opcion == "op2":
-        texto = "📋 *¿Cómo me inscribo?*\n\nLlena el formulario en https://dithermichel.com y te contactamos."
+        texto = ("""📋 *¿Cómo me inscribo?*\n\n✍️ ¡El proceso es muy sencillo! Solo sigue estos pasos:\n\n1. Llena este formulario: 👉 Formulario de inscripción\n2. Realiza el pago de inscripción.\n3. Un asesor se pondrá en contacto contigo para verificar tu información.\n\n\n📄 Documentos que necesitas:\n\n- Acta de nacimiento\n- CURP\n- Comprobante de domicilio\n- Certificado de secundaria\n\n""")
         enviar_boton_regreso(texto, numero)
+
     elif opcion == "op3":
-        texto = "💰 *Costos y promociones*:\n\nConsulta precios actualizados en https://dithermichel.com"
+        texto = ("""💰 *Costos y promociones*:\n\n💰 Nuestro modelo es accesible y sin pagos ocultos.\n🔹 Inscripción Y Reinscripciones: $XXX MXN\n🔹 Mensualidad: $XXX MXN\n\n\n🎁 Promoción actual: Inscripción con 50% de descuento.\n\n\n📆 Aceptamos pagos por:\n- Transferencia\n- OXXO\n- PayPal\n""")
         enviar_boton_regreso(texto, numero)
-    elif opcion == "op4":
-        texto = "🧑‍💼 *Hablar con asesor*:\n\nTe conectaremos con un asesor pronto."
-        enviar_boton_regreso(texto, numero)
-    elif opcion == "op5":
-        texto = "🕐 *Otra pregunta*:\n\nEspera a personal, tu pregunta será respondida en breve."
-        enviar_texto(numero, texto)
 
 
 # -------------> Funcion Envio - MENU PRINCIPAL 
@@ -158,16 +148,15 @@ def enviar_menu(numero, recordar=False):
             },
             "action": {
                 "buttons": [
-                    {"type": "reply", "reply": {"id": "op1", "title": "1️⃣ Informacion general"}},
+                    {"type": "reply", "reply": {"id": "op1", "title": "1️⃣ Informacion"}},
                     {"type": "reply", "reply": {"id": "op2", "title": "2️⃣ Inscripción"}},
-                    {"type": "reply", "reply": {"id": "op3", "title": "3️⃣ Costos y Promocciones"}},
-                    {"type": "reply", "reply": {"id": "op4", "title": "4️⃣ Asesor"}},
-                    {"type": "reply", "reply": {"id": "op5", "title": "5️⃣ Otra pregunta"}}
+                    {"type": "reply", "reply": {"id": "op3", "title": "3️⃣ Costos"}},
                 ]
             }
         }
     }
     enviar_peticion(data)
+
 
 # -------------> Función - Boton de "regresar al menu" 
 
@@ -186,8 +175,8 @@ def enviar_boton_regreso(texto, numero):
                     {
                         "type": "reply",
                         "reply": {
-                            "id": "menu",
-                            "title": "🔙 Regresar al menú"
+                            "id": "enviar_menu",
+                            "title": "🔙 Menú"
                         }
                     }
                 ]
