@@ -101,6 +101,7 @@ def recibir_mensajes(req):
                 agregar_mensajes_log(f"{numero}: {texto}")
 
                 if texto in ["hola", "buenas", "buenos días", "buenas tardes", "buenas noches"]:
+                    enviar_texto(numero, "👋 Hola, soy Farabot. Estoy para servirte.")
                     enviar_menu(numero)
                 else:
                     enviar_texto(numero, "🕐 Un asesor se pondrá en contacto contigo en breve.")
@@ -133,13 +134,13 @@ def responder_seleccion(opcion, numero):
 
     elif opcion == "enviar_menu":
         enviar_menu(numero)  # ✅ Esta línea activa el botón de regreso al menú
-        
+
 # -------------> Funcion Envio - MENU PRINCIPAL 
 
 def enviar_menu(numero, recordar=False):
     numero = "524611777249" # borrar
 
-    texto = "👋 Hola, soy Farabot.\nSelecciona una opción para continuar:" if not recordar else "⚠️ Por favor selecciona una opción del menú:"
+    texto = "*MENÚ*.\nSelecciona una opción para continuar:" if not recordar else "⚠️ Por favor selecciona una opción del menú:"
     
     data = {
         "messaging_product": "whatsapp",
