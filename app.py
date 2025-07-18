@@ -134,12 +134,6 @@ def responder_seleccion(opcion, numero):
     elif opcion == "op3":
         texto = "💰 *Costos y promociones*:\n\nConsulta precios actualizados en https://dithermichel.com"
         enviar_boton_regreso(texto, numero)
-    elif opcion == "op4":
-        texto = "🧑‍💼 *Hablar con asesor*:\n\nTe conectaremos con un asesor pronto."
-        enviar_boton_regreso(texto, numero)
-    elif opcion == "op5":
-        texto = "🕐 *Otra pregunta*:\n\nEspera a personal, tu pregunta será respondida en breve."
-        enviar_texto(numero, texto)
 
 
 # -------------> Funcion Envio - MENU PRINCIPAL 
@@ -161,8 +155,6 @@ def enviar_menu(numero, recordar=False):
                     {"type": "reply", "reply": {"id": "op1", "title": "1️⃣ Informacion general"}},
                     {"type": "reply", "reply": {"id": "op2", "title": "2️⃣ Inscripción"}},
                     {"type": "reply", "reply": {"id": "op3", "title": "3️⃣ Costos y Promocciones"}},
-                    {"type": "reply", "reply": {"id": "op4", "title": "4️⃣ Asesor"}},
-                    {"type": "reply", "reply": {"id": "op5", "title": "5️⃣ Otra pregunta"}}
                 ]
             }
         }
