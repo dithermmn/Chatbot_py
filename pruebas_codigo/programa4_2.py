@@ -10,7 +10,7 @@ import json
 #------------------ VARIABLES ------------------
 
 TOKEN_VERIFICACION = "FARABOT" # Token validar webhook
-ACCESS_TOKEN = os.getenv("EAAVPtixyt4QBPJUZBUbCJA1RMUrACVqYD5BMflsMRXmMNCx43oBcrZCqNSi7tCGaAK1cKoI9uGoCL3Q3PZClZBQBt19DZA975nhXVuRTNZBWOhFObWL9tS5uX9odNewXdIp9eNSaJKnE0zzFJvy9bdfanPOIKfuvwjqW10kddTrv9CboJs9n6vX0xGEAFLeP1um4HZA5HfI7on5AcBnrv5XtXbMLyihHIV3DDBRwFCDIKvlJ1oZD")
+ACCESS_TOKEN = os.getenv("EAAVPtixyt4QBPGRsMVaVmNXZABb8ZAQglhHIyC6rO9IC5GdEoQyF9TX9pnKQhuAivJTz0DVfubG5uvnqoW7AxDo1MZAajEzXi75TBPWH5wFvORLB9tkMiTknfp2QWuJ7ZA5x1FgAB84NlAhZBncdKmRuZA6ZAY9JqrQtlV4ZB7mHooWNY7dYVWaK0AFbqnxlGajQ12kK46ZCnPa6RR5Jgmgnpn3answBLJakHueEXYEhvZCdNmRlAZD")
 PHONE_NUMBER_IDE ="762799950241046" #Identificador del numero (del numero de faraday)
 API_URL = f"https://graph.facebook.com/v22.0/762799950241046/messages" # Url de la app
 numero = "524611777249" # borrar esta
@@ -20,14 +20,12 @@ BOTONES_MENU = [
     {"id": "op1", "title": "1️⃣ Información general"},
     {"id": "op2", "title": "2️⃣ Inscripción"},
     {"id": "op3", "title": "3️⃣ Costos y Promociones"},
-    {"id": "op4", "title": "4️⃣ Asesor"},
-    {"id": "op5", "title": "5️⃣ Otra pregunta"},
 ]
 #------------------  Base de Datos Y Flask ------------------
 
 # Configuración De Flask
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///instance/metapython.db' # Base de datos local SQLite
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///metapython.db'  # Base de datos local SQLite
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -137,90 +135,16 @@ def procesar_mensaje(data):
 
 def responder_seleccion(opcion, numero):
     if opcion == "op1":
-        texto = ("""📘 *Información general*:\n\n
-                 
-                🎓 Nuestro bachillerato en línea es ideal si buscas estudiar desde casa, a tu ritmo, sin exámenes presenciales.\n
-                📌 Dura 2 años.\n
-                📅 Puedes comenzar cuando quieras.\n
-                🌐 Modalidad 100% en línea con apoyo académico continuo.\n
-                💻 100% en línea, sin asistir a planteles.\n
-                🕒 Estudias a tu ritmo y desde cualquier lugar.\n
-                📅 Acceso 24/7 a la plataforma\n
-                🧑‍🏫 Asesorías personalizadas por WhatsApp y correo\n\n\n
-                 
-
-                ✅ Para ingresar necesitas:\n
-                - Tener secundaria terminada\n
-                - Ser mayor de 15 años\n
-                - Contar con acceso a internet\n\n\n
-                 
-
-                📁 Documentación:\n
-                - Acta de nacimiento\n
-                - CURP\n
-                - Certificado de secundaria\n
-                - Comprobante de domicilio\n\n\n
-                 
-
-                🏛️ Nuestro programa tiene validez oficial ante la SEP.\n
-                - RVOE: xxxxxxxxxxxxx\n\n
-                 
-                Puedes consultarlo directamente en la página oficial:\n
-                👉 Consultar RVOE en SEP\n\n
-                 
-                🏫 Al finalizar recibirás un certificado de bachillerato válido en todo México.\n\n\n
-                 
-
-                📄 Ver folleto informativo (PDF)\n\n""")
+        texto = ("📘 *Información general*:\n\n🎓 Nuestro bachillerato en línea es ideal si buscas estudiar desde casa, a tu ritmo, sin exámenes presenciales.\n\n📌 Dura 2 años.\n📅 Puedes comenzar cuando quieras.\n🌐 Modalidad 100% en línea con apoyo académico continuo.\n💻 100% en línea, sin asistir a planteles.\n🕒 Estudias a tu ritmo y desde cualquier lugar.\n📅 Acceso 24/7 a la plataforma\n🧑‍🏫 Asesorías personalizadas por WhatsApp y correo\n\n\n✅ Para ingresar necesitas:\n- Tener secundaria terminada\n- Ser mayor de 15 años\n- Contar con acceso a internet\n\n\n📁 Documentación:\n- Acta de nacimiento\n- CURP\n- Certificado de secundaria\n- Comprobante de domicilio\n\n\n🏛️ Nuestro programa tiene validez oficial ante la SEP.\n- RVOE: xxxxxxxxxxxxx\n\nPuedes consultarlo directamente en la página oficial:\n👉 Consultar RVOE en SEP\n\n🏫 Al finalizar recibirás un certificado de bachillerato válido en todo México.\n\n\n")
         enviar_boton_regreso(texto, numero)
 
     elif opcion == "op2":
-        texto = ("""📋 *¿Cómo me inscribo?*\n\n
-                 
-                 ✍️ ¡El proceso es muy sencillo! Solo sigue estos pasos:\n\n
-
-                1. Llena este formulario: 👉 Formulario de inscripción\n
-                2. Realiza el pago de inscripción.\n
-                3. Un asesor se pondrá en contacto contigo para verificar tu información.\n\n\n
-                 
-
-                📄 Documentos que necesitas:\n\n
-                 
-                - Acta de nacimiento\n
-                - CURP\n
-                - Comprobante de domicilio\n
-                - Certificado de secundaria\n\n""")
+        texto = ("📋 *¿Cómo me inscribo?*\n\n✍️ ¡El proceso es muy sencillo! Solo sigue estos pasos:\n\n1. Llena este formulario: 👉 Formulario de inscripción\n2. Realiza el pago de inscripción.\n3. Un asesor se pondrá en contacto contigo para verificar tu información.\n\n\n📄 Documentos que necesitas:\n\n- Acta de nacimiento\n- CURP\n- Comprobante de domicilio\n- Certificado de secundaria\n\n")
         enviar_boton_regreso(texto, numero)
 
     elif opcion == "op3":
-        texto = ("💰 *Costos y promociones*:\n\n" \
-        ""
-                 """💰 Nuestro modelo es accesible y sin pagos ocultos.\n
-                🔹 Inscripción Y Reinscripciones: $XXX MXN\n
-                🔹 Mensualidad: $XXX MXN\n\n\n
-
-
-                🎁 Promoción actual: Inscripción con 50% de descuento.\n\n\n
-
-
-                📆 Aceptamos pagos por:\n
-                - Transferencia\n
-                - OXXO\n
-                - PayPal\n""")
+        texto = ("💰 *Costos y promociones*:\n\n💰 Nuestro modelo es accesible y sin pagos ocultos.\n🔹 Inscripción Y Reinscripciones: $XXX MXN\n🔹 Mensualidad: $XXX MXN\n\n\n🎁 Promoción actual: Inscripción con 50% de descuento.\n\n\n📆 Aceptamos pagos por:\n- Transferencia\n- OXXO\n- PayPal\n")
         enviar_boton_regreso(texto, numero)
-
-    elif opcion == "op4":
-        texto = ("🧑‍💼 *Hablar con asesor*:\n\n"
-                 """🕘 Horarios de atención:\n
-                - Lunes a Viernes de 9:00 a.m. a 6:00 p.m.\n
-                - Sábados de 10:00 a.m. a 2:00 p.m.\n\n""")
-        enviar_boton_regreso(texto, numero)
-
-    elif opcion == "op5":
-        texto = ("🕐 *Otra pregunta*:\n\n"
-                 """✏️ Por favor escribe tu pregunta y haré lo posible por ayudarte.\n
-                Si no puedo resolverla, te contactaré con un asesor humano.\n\n""")
-        enviar_texto(numero, texto)
 
     elif opcion == "menu":
         enviar_menu(numero)
