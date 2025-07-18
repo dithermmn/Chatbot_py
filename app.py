@@ -94,12 +94,14 @@ def recibir_mensajes(req):
 
             # Si el mensaje es un botón presionado
             if msg.get("type") == "interactive":
-                interactive = msg["interactive"]
-                if "button_reply" in interactive:
-                    seleccion = interactive["button_reply"]["id"]
-                elif "list_reply" in interactive:
-                    seleccion = interactive["list_reply"]["id"]
+                seleccion = msg["interactive"]["button_reply"]["id"]
                 responder_seleccion(seleccion, numero)
+
+            # Si es texto, mostrar el menú
+            elif msg.get("type") == "text":
+                texto = msg["text"]["body"].strip().lower()
+                agregar_mensajes_log(f"{numero}: {texto}")
+                enviar_menu(numero)
 
         else:
             # Si no hubo interacción con botones, reenviar el menú
