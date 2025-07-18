@@ -3,14 +3,13 @@ from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import http.client
-import os
 import json
 
 
 #------------------ VARIABLES ------------------
 
 TOKEN_VERIFICACION = "FARABOT" # Token de seguridad para el webhook
-ACCESS_TOKEN = os.getenv("EAAVPtixyt4QBPF8tc6CBV4GgszBnHX5hX9iiV7xlZBO8nYBuBtb8ZCHZAeW8GR5OxwormkDqUHOIRF9iKgaZAJ9T1udZCAxNZBWSK0ZCtnwlmqMc9LpH949LD0tmjrULGZBd3rNkxuYJdLRXtkcVhoQWqDNLs7CuTI7m9eenEUQY0wl5MiPgRLGxBZCtTFFqWj5wQuZAaT6EAePyxrXAMjIRAu5tirBG9riVKIEpC9lTAYmaha1JIC3yIE9PnRGtqx7IsZD")
+ACCESS_TOKEN = "EAAVPtixyt4QBPA7OlijBKOZAPgsj1Lg0J4l09GlP6i8JHY4gZC39sa51TH4ItfDUXXPgmnGsSaTPJw0ZAuTYJQ2eMIhJWPRFcZCTQqdxxJC62lmZBNL9ySRZBWqvJj76XzbScq88TqJ1k0fwx5AV8LydhZBbOwZAREYJtc8U1pLfXxYZBNoZBtodDKWrIUmoCyIKQiyEc3pfxrIkZCABFw3A4E7qU41HZBatZCb1uZAACfE4y4q1YhSvIZD"
 PHONE_NUMBER_IDE ="762799950241046" #Identificador del numero (del numero de faraday)
 
 #------------------  Base de Datos Y Flask ------------------
