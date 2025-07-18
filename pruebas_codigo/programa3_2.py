@@ -149,53 +149,20 @@ def enviar_menu(numero, recordar=False):
     
     data = {
         "messaging_product": "whatsapp",
-        "to": numero,
+        "to": 524611777249,
         "type": "interactive",
         "interactive": {
-            "type": "list",
-            "header": {
-                "type": "text",
-                "text": "📚 Menú principal"
-            },
+            "type": "button",
             "body": {
                 "text": texto
             },
-            "footer": {
-                "text": "Farabot - Educación en línea"
-            },
             "action": {
-                "button": "Ver opciones",
-                "sections": [
-                    {
-                        "title": "Selecciona una opción",
-                        "rows": [
-                            {
-                                "id": "op1",
-                                "title": "1️⃣ Información general",
-                                "description": "Duración, requisitos, y detalles"
-                            },
-                            {
-                                "id": "op2",
-                                "title": "2️⃣ Inscripción",
-                                "description": "Pasos para inscribirte fácilmente"
-                            },
-                            {
-                                "id": "op3",
-                                "title": "3️⃣ Costos y promociones",
-                                "description": "Consulta precios y descuentos"
-                            },
-                            {
-                                "id": "op4",
-                                "title": "4️⃣ Asesor",
-                                "description": "Habla directamente con un asesor"
-                            },
-                            {
-                                "id": "op5",
-                                "title": "5️⃣ Otra pregunta",
-                                "description": "Haz otra consulta o duda"
-                            }
-                        ]
-                    }
+                "buttons": [
+                    {"type": "reply", "reply": {"id": "op1", "title": "1️⃣ Informacion general"}},
+                    {"type": "reply", "reply": {"id": "op2", "title": "2️⃣ Inscripción"}},
+                    {"type": "reply", "reply": {"id": "op3", "title": "3️⃣ Costos y Promocciones"}},
+                    {"type": "reply", "reply": {"id": "op4", "title": "4️⃣ Asesor"}},
+                    {"type": "reply", "reply": {"id": "op5", "title": "5️⃣ Otra pregunta"}}
                 ]
             }
         }

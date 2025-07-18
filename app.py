@@ -126,59 +126,11 @@ def recibir_mensajes(req):
 
 def responder_seleccion(opcion, numero):
     if opcion == "op1":
-        texto = ("""📘 *Información general*:\n\n
-                 
-                🎓 Nuestro bachillerato en línea es ideal si buscas estudiar desde casa, a tu ritmo, sin exámenes presenciales.\n
-                📌 Dura 2 años.\n
-                📅 Puedes comenzar cuando quieras.\n
-                🌐 Modalidad 100% en línea con apoyo académico continuo.\n
-                💻 100% en línea, sin asistir a planteles.\n
-                🕒 Estudias a tu ritmo y desde cualquier lugar.\n
-                📅 Acceso 24/7 a la plataforma\n
-                🧑‍🏫 Asesorías personalizadas por WhatsApp y correo\n\n\n
-                 
-
-                ✅ Para ingresar necesitas:\n
-                - Tener secundaria terminada\n
-                - Ser mayor de 15 años\n
-                - Contar con acceso a internet\n\n\n
-                 
-
-                📁 Documentación:\n
-                - Acta de nacimiento\n
-                - CURP\n
-                - Certificado de secundaria\n
-                - Comprobante de domicilio\n\n\n
-                 
-
-                🏛️ Nuestro programa tiene validez oficial ante la SEP.\n
-                - RVOE: xxxxxxxxxxxxx\n\n
-                 
-                Puedes consultarlo directamente en la página oficial:\n
-                👉 Consultar RVOE en SEP\n\n
-                 
-                🏫 Al finalizar recibirás un certificado de bachillerato válido en todo México.\n\n\n
-                 
-
-                📄 Ver folleto informativo (PDF)\n\n""")
+        texto = ("""📘 *Información general*:\n\n🎓 Nuestro bachillerato en línea es ideal si buscas estudiar desde casa, a tu ritmo, sin exámenes presenciales.\n📌 Dura 2 años.\n📅 Puedes comenzar cuando quieras.\n🌐 Modalidad 100% en línea con apoyo académico continuo.\n💻 100% en línea, sin asistir a planteles.\n🕒 Estudias a tu ritmo y desde cualquier lugar.\n📅 Acceso 24/7 a la plataforma\n🧑‍🏫 Asesorías personalizadas por WhatsApp y correo\n\n\n✅ Para ingresar necesitas:\n- Tener secundaria terminada\n- Ser mayor de 15 años\n- Contar con acceso a internet\n\n\n📁 Documentación:\n- Acta de nacimiento\n- CURP\n- Certificado de secundaria\n- Comprobante de domicilio\n\n\n🏛️ Nuestro programa tiene validez oficial ante la SEP.\n- RVOE: xxxxxxxxxxxxx\n\nPuedes consultarlo directamente en la página oficial:\n👉 Consultar RVOE en SEP\n\n🏫 Al finalizar recibirás un certificado de bachillerato válido en todo México.\n\n\n""")
         enviar_boton_regreso(texto, numero)
 
     elif opcion == "op2":
-        texto = ("""📋 *¿Cómo me inscribo?*\n\n
-                 
-                 ✍️ ¡El proceso es muy sencillo! Solo sigue estos pasos:\n\n
-
-                1. Llena este formulario: 👉 Formulario de inscripción\n
-                2. Realiza el pago de inscripción.\n
-                3. Un asesor se pondrá en contacto contigo para verificar tu información.\n\n\n
-                 
-
-                📄 Documentos que necesitas:\n\n
-                 
-                - Acta de nacimiento\n
-                - CURP\n
-                - Comprobante de domicilio\n
-                - Certificado de secundaria\n\n""")
+        texto = ("""📋 *¿Cómo me inscribo?*\n\n✍️ ¡El proceso es muy sencillo! Solo sigue estos pasos:\n\n1. Llena este formulario: 👉 Formulario de inscripción\n2. Realiza el pago de inscripción.\n3. Un asesor se pondrá en contacto contigo para verificar tu información.\n\n\n📄 Documentos que necesitas:\n\n- Acta de nacimiento\n- CURP\n- Comprobante de domicilio\n- Certificado de secundaria\n\n""")
         enviar_boton_regreso(texto, numero)
 
     elif opcion == "op3":
@@ -206,23 +158,59 @@ def enviar_menu(numero, recordar=False):
     
     data = {
         "messaging_product": "whatsapp",
-        "to": 524611777249,
+        "to": numero,
         "type": "interactive",
         "interactive": {
-            "type": "button",
+            "type": "list",
+            "header": {
+                "type": "text",
+                "text": "📚 Menú principal"
+            },
             "body": {
                 "text": texto
             },
+            "footer": {
+                "text": "Farabot - Educación en línea"
+            },
             "action": {
-                "buttons": [
-                    {"type": "reply", "reply": {"id": "op1", "title": "1️⃣ Informacion"}},
-                    {"type": "reply", "reply": {"id": "op2", "title": "2️⃣ Inscripción"}},
-                    {"type": "reply", "reply": {"id": "op3", "title": "3️⃣ Costo"}},
+                "button": "Ver opciones",
+                "sections": [
+                    {
+                        "title": "Selecciona una opción",
+                        "rows": [
+                            {
+                                "id": "op1",
+                                "title": "1️⃣ Información general",
+                                "description": "Duración, requisitos, y detalles"
+                            },
+                            {
+                                "id": "op2",
+                                "title": "2️⃣ Inscripción",
+                                "description": "Pasos para inscribirte fácilmente"
+                            },
+                            {
+                                "id": "op3",
+                                "title": "3️⃣ Costos y promociones",
+                                "description": "Consulta precios y descuentos"
+                            },
+                            {
+                                "id": "op4",
+                                "title": "4️⃣ Asesor",
+                                "description": "Habla directamente con un asesor"
+                            },
+                            {
+                                "id": "op5",
+                                "title": "5️⃣ Otra pregunta",
+                                "description": "Haz otra consulta o duda"
+                            }
+                        ]
+                    }
                 ]
             }
         }
     }
     enviar_peticion(data)
+
 
 # -------------> Función - Boton de "regresar al menu" 
 
