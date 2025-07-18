@@ -74,7 +74,7 @@ def verificar_token(req):
         return jsonify({'error': 'Token inválido'}), 401
 
 
-#------------------ Codigo Del MENSAJE ------------------ 
+#------------------Logica - Procesamiento Del MENSAJE ------------------ 
 
 # Función principal - procesa los mensajes recibidos desde WhatsApp
 def recibir_mensajes(req):
@@ -90,26 +90,23 @@ def recibir_mensajes(req):
 
         if mensajes:
             msg = mensajes[0]
-            numero = msg["from"].strip()  # Número del usuario
+            numero = msg["from"].strip()
 
-            # Si el mensaje es un botón presionado
             if msg.get("type") == "interactive":
                 seleccion = msg["interactive"]["button_reply"]["id"]
                 responder_seleccion(seleccion, numero)
 
-            # Si es texto, mostrar el menú
             elif msg.get("type") == "text":
                 texto = msg["text"]["body"].strip().lower()
                 agregar_mensajes_log(f"{numero}: {texto}")
-                enviar_menu(numero)
 
+                if texto in ["hola", "buenas", "buenos días", "buenas tardes", "buenas noches"]:
+                    enviar_menu(numero)
+                else:
+                    enviar_texto(numero, "🕐 Un asesor se pondrá en contacto contigo en breve.")
         else:
-            if "contacts" in value:
-                numero = value["contacts"][0]["wa_id"]
-                enviar_menu(numero, recordar=True)
-            else:
-                agregar_mensajes_log("⚠️ Se recibió un evento sin 'contacts'. No se envió respuesta.")
-
+            numero = value['contacts'][0]['wa_id']
+            enviar_texto(numero, "⚠️ Por favor selecciona una opción del menú o espera a que un asesor te atienda.")
 
         return jsonify({'message': 'EVENT_RECEIVED'})
 
@@ -138,11 +135,13 @@ def responder_seleccion(opcion, numero):
 # -------------> Funcion Envio - MENU PRINCIPAL 
 
 def enviar_menu(numero, recordar=False):
+    numero = "524611777249" # borrar
+
     texto = "👋 Hola, soy Farabot.\nSelecciona una opción para continuar:" if not recordar else "⚠️ Por favor selecciona una opción del menú:"
     
     data = {
         "messaging_product": "whatsapp",
-        "to": 524611777249,
+        "to": numero,
         "type": "interactive",
         "interactive": {
             "type": "button",
@@ -164,9 +163,10 @@ def enviar_menu(numero, recordar=False):
 # -------------> Función - Boton de "regresar al menu" 
 
 def enviar_boton_regreso(texto, numero):
+    numero = "524611777249" # borrar
     data = {
         "messaging_product": "whatsapp",
-        "to": 524611777249,
+        "to": numero,
         "type": "interactive",
         "interactive": {
             "type": "button",
@@ -192,9 +192,10 @@ def enviar_boton_regreso(texto, numero):
 
 # Función para enviar mensajes de texto simples
 def enviar_texto(numero, texto):
+    numero = "524611777249" # borrar
     data = {
         "messaging_product": "whatsapp",
-        "to": 524611777249,
+        "to": numero,
         "type": "text",
         "text": {
             "body": texto
