@@ -131,7 +131,9 @@ def responder_seleccion(opcion, numero):
         texto = ("""💰 *Costos y promociones*:\n\n💰 Nuestro modelo es accesible y sin pagos ocultos.\n🔹 Inscripción Y Reinscripciones: $XXX MXN\n🔹 Mensualidad: $XXX MXN\n\n\n🎁 Promoción actual: Inscripción con 50% de descuento.\n\n\n📆 Aceptamos pagos por:\n- Transferencia\n- OXXO\n- PayPal\n""")
         enviar_boton_regreso(texto, numero)
 
-
+    elif opcion == "enviar_menu":
+        enviar_menu(numero)  # ✅ Esta línea activa el botón de regreso al menú
+        
 # -------------> Funcion Envio - MENU PRINCIPAL 
 
 def enviar_menu(numero, recordar=False):
