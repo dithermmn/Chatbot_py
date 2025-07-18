@@ -9,7 +9,7 @@ import json
 #------------------ VARIABLES ------------------
 
 TOKEN_VERIFICACION = "FARABOT" # Token de seguridad para el webhook
-ACCESS_TOKEN = "EAAVPtixyt4QBPB5YoyTZBdZAuvX5xATHxkUCGQdaDefz2G9rdYC5AJTdROMvJVGZA57g4emva7qxgZB5x8ZBuIPsAlk5ujGGXBVFgMeT9TQEHIDXw7nUIO615wWizo2yILuGCJ20iL9dAevTjaTq0xXc3ngEzor1UhRFawmKUIDrfP7dR5OGg6BZC3DwZAgjaYN2uBRtWGEAKSSVlMa3XsbmQqAVHXxlewZAuaoA3mIvUU44VxjvSEZA0iCrlpg6jaT4ZD"
+ACCESS_TOKEN = "EAAVPtixyt4QBPJYCqpZBCqbMxjWhuNQjA6GwwZAZA9RU4aFejEJIkXHLbZAWtg3h4Ag5ZAPt15TmlgJBIepAGHFoWT0AIZC4Rmt2qbEyb5QQK9tfRIS23Wn4UZBdcK9Xcq6ZBkEha1Vjz8qoj2aELQXAlHf2gwwf1dCZCWiXonNumFfimrZCmDnFPY07QmaatAWkWMPFAjosizqt9fdmI8ZCBqfhgXZAHTzjIJm27ZCdQ8ZBiPZC0269JtIsSq1SlqbA4Ifk5gZD"
 PHONE_NUMBER_IDE ="762799950241046" #Identificador del numero (del numero de faraday)
 
 #------------------  Base de Datos Y Flask ------------------
@@ -140,7 +140,7 @@ def responder_seleccion(opcion, numero):
 def enviar_menu(numero, recordar=False):
     numero = "524611777249" # borrar
 
-    texto = "*MENÚ*.\nSelecciona una opción para continuar:" if not recordar else "⚠️ Por favor selecciona una opción del menú:"
+    texto = "*Selecciona una opción para continuar:*\n" if not recordar else "⚠️ Por favor selecciona una opción del menú:"
     
     data = {
         "messaging_product": "whatsapp",
