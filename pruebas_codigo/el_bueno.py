@@ -9,7 +9,7 @@ import json
 #------------------ VARIABLES ------------------
 
 TOKEN_VERIFICACION = "FARABOT" # Token de seguridad para el webhook
-ACCESS_TOKEN = "EAAVPtixyt4QBPPSa3QyZCLfWy3F2ZCPgamCZBxctpxV2OojPrjIdR9QXZBylCcA9uXdlCTeKjBau1A1lsqcSASNCU8zIuo7EHZAK2sqn6aomnwcRKl5bNC9T8U60aNy26FsNOavkf86vby0erZBMLve7Tf09dfcdZB7A7ZAKMNXZB6G37fnPjWjciVEzSVkFK3569zzekmZAJVf0p6B6yRQlNGOQ1hUoACd9zt1gA2ZBxqCFEZCuoEsZD"
+ACCESS_TOKEN = "EAAVPtixyt4QBPB5YoyTZBdZAuvX5xATHxkUCGQdaDefz2G9rdYC5AJTdROMvJVGZA57g4emva7qxgZB5x8ZBuIPsAlk5ujGGXBVFgMeT9TQEHIDXw7nUIO615wWizo2yILuGCJ20iL9dAevTjaTq0xXc3ngEzor1UhRFawmKUIDrfP7dR5OGg6BZC3DwZAgjaYN2uBRtWGEAKSSVlMa3XsbmQqAVHXxlewZAuaoA3mIvUU44VxjvSEZA0iCrlpg6jaT4ZD"
 PHONE_NUMBER_IDE ="762799950241046" #Identificador del numero (del numero de faraday)
 
 #------------------  Base de Datos Y Flask ------------------

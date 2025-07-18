@@ -104,9 +104,12 @@ def recibir_mensajes(req):
                 enviar_menu(numero)
 
         else:
-            # Si no hubo interacción con botones, reenviar el menú
-            numero = value['contacts'][0]['wa_id']
-            enviar_menu(numero, recordar=True)
+            if "contacts" in value:
+                numero = value["contacts"][0]["wa_id"]
+                enviar_menu(numero, recordar=True)
+            else:
+                agregar_mensajes_log("⚠️ Se recibió un evento sin 'contacts'. No se envió respuesta.")
+
 
         return jsonify({'message': 'EVENT_RECEIVED'})
 
