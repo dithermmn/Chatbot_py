@@ -1,3 +1,6 @@
+#El primer mensaje del usuuario o si pone menu manda el menu y los posteriores pone que lo va a atender alguien 
+
+
 # Importación de librerías necesarias
 from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
@@ -9,7 +12,7 @@ import json
 #------------------ VARIABLES ------------------
 
 TOKEN_VERIFICACION = "FARABOT" # Token de seguridad para el webhook
-ACCESS_TOKEN = "EAAVPtixyt4QBPB5YoyTZBdZAuvX5xATHxkUCGQdaDefz2G9rdYC5AJTdROMvJVGZA57g4emva7qxgZB5x8ZBuIPsAlk5ujGGXBVFgMeT9TQEHIDXw7nUIO615wWizo2yILuGCJ20iL9dAevTjaTq0xXc3ngEzor1UhRFawmKUIDrfP7dR5OGg6BZC3DwZAgjaYN2uBRtWGEAKSSVlMa3XsbmQqAVHXxlewZAuaoA3mIvUU44VxjvSEZA0iCrlpg6jaT4ZD"
+ACCESS_TOKEN = "EAAVPtixyt4QBPAUlSEYiq0LL5VreYR7Bo91vqYtMvxzmZAVPyi6UZBDM8qZAowRSocmfeScyNibuiECkPJGUKXVQhHbvPCvjs3JPDs1KJYuFmo9lAN4A7wwnCM8tMS0IKlKoDVBfFIClgJ4SzfVqtZAZCKggOxw65wRZB1kudmNLJz4JUF1XoZA7GWX6MonjLqb3gnMNN0rf10QZBoxEouO1X9r0zM0FC3DWgIbQUU3dOTTWXW7ZCw1cvMJ8VrUgZAZCgZDZD"
 PHONE_NUMBER_IDE ="762799950241046" #Identificador del numero (del numero de faraday)
 
 #------------------  Base de Datos Y Flask ------------------
@@ -25,6 +28,8 @@ class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     fecha_y_hora = db.Column(db.DateTime, default=datetime.utcnow)
     texto = db.Column(db.TEXT)
+    telefono = db.Column(db.String(20))  # Guardar número
+    
 
 # Crear la tabla en la base de datos si no existe
 with app.app_context():
@@ -33,8 +38,8 @@ with app.app_context():
 # -------------> FUNCIONES DE BD
 
 # Función - guardar mensajes en la BD
-def agregar_mensajes_log(texto):
-    nuevo_registro = Log(texto=texto)
+def agregar_mensajes_log(texto, telefono=None):
+    nuevo_registro = Log(texto=texto, telefono=telefono)
     db.session.add(nuevo_registro)
     db.session.commit()
 
@@ -42,6 +47,9 @@ def agregar_mensajes_log(texto):
 def ordenar_por_fecha_y_hora(registros):
     return sorted(registros, key=lambda x: x.fecha_y_hora, reverse=True)
 
+# Verificar si es primer mensaje para un número
+def es_primer_mensaje(numero):
+    return Log.query.filter_by(telefono=numero).count() == 0
 # -------------> HTML
 
 # Ruta raíz que muestra los mensajes en HTML
@@ -74,7 +82,7 @@ def verificar_token(req):
         return jsonify({'error': 'Token inválido'}), 401
 
 
-#------------------ Codigo Del MENSAJE ------------------ 
+#------------------Logica - Procesamiento Del MENSAJE ------------------ 
 
 # Función principal - procesa los mensajes recibidos desde WhatsApp
 def recibir_mensajes(req):
@@ -90,23 +98,24 @@ def recibir_mensajes(req):
 
         if mensajes:
             msg = mensajes[0]
-            numero = msg["from"].strip()  # Número del usuario
+            numero = msg["from"].strip()
 
-            # Si el mensaje es un botón presionado
             if msg.get("type") == "interactive":
                 seleccion = msg["interactive"]["button_reply"]["id"]
+                agregar_mensajes_log(f"{numero} seleccionó: {seleccion}", numero)
                 responder_seleccion(seleccion, numero)
 
-            # Si es texto, mostrar el menú
             elif msg.get("type") == "text":
                 texto = msg["text"]["body"].strip().lower()
-                agregar_mensajes_log(f"{numero}: {texto}")
-                enviar_menu(numero)
+                agregar_mensajes_log(f"{numero}: {texto}", numero)
 
+                if es_primer_mensaje(numero) or texto == "menu":
+                    enviar_texto(numero, "👋 Hola, soy Farabot. Estoy para servirte.")
+                    enviar_menu(numero)
+                else:
+                    enviar_texto(numero, "🕐 Un asesor se pondrá en contacto contigo en breve.")
         else:
-            # Si no hubo interacción con botones, reenviar el menú
-            numero = value['contacts'][0]['wa_id']
-            enviar_menu(numero, recordar=True)
+            agregar_mensajes_log("⚠️ No se recibió mensaje. Nada que responder.")
 
         return jsonify({'message': 'EVENT_RECEIVED'})
 
@@ -131,15 +140,19 @@ def responder_seleccion(opcion, numero):
         texto = ("""💰 *Costos y promociones*:\n\n💰 Nuestro modelo es accesible y sin pagos ocultos.\n🔹 Inscripción Y Reinscripciones: $XXX MXN\n🔹 Mensualidad: $XXX MXN\n\n\n🎁 Promoción actual: Inscripción con 50% de descuento.\n\n\n📆 Aceptamos pagos por:\n- Transferencia\n- OXXO\n- PayPal\n""")
         enviar_boton_regreso(texto, numero)
 
+    elif opcion == "enviar_menu":
+        enviar_menu(numero)  # ✅ Esta línea activa el botón de regreso al menú
 
 # -------------> Funcion Envio - MENU PRINCIPAL 
 
 def enviar_menu(numero, recordar=False):
-    texto = "👋 Hola, soy Farabot.\nSelecciona una opción para continuar:" if not recordar else "⚠️ Por favor selecciona una opción del menú:"
+    numero = "524611777249" # borrar
+
+    texto = "*Selecciona una opción para continuar:*\n" if not recordar else "⚠️ Por favor selecciona una opción del menú:"
     
     data = {
         "messaging_product": "whatsapp",
-        "to": 524611777249,
+        "to": numero,
         "type": "interactive",
         "interactive": {
             "type": "button",
@@ -161,9 +174,10 @@ def enviar_menu(numero, recordar=False):
 # -------------> Función - Boton de "regresar al menu" 
 
 def enviar_boton_regreso(texto, numero):
+    numero = "524611777249" # borrar
     data = {
         "messaging_product": "whatsapp",
-        "to": 524611777249,
+        "to": numero,
         "type": "interactive",
         "interactive": {
             "type": "button",
@@ -189,9 +203,10 @@ def enviar_boton_regreso(texto, numero):
 
 # Función para enviar mensajes de texto simples
 def enviar_texto(numero, texto):
+    numero = "524611777249" # borrar
     data = {
         "messaging_product": "whatsapp",
-        "to": 524611777249,
+        "to": numero,
         "type": "text",
         "text": {
             "body": texto

@@ -1,219 +1,172 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, render_template
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import http.client
 import json
-
-#------------------ VARIABLES ------------------
-
-TOKEN_VERIFICACION = "FARABOT"
-ACCESS_TOKEN = "EAAVPtixyt4QBPFMZAvwiwYkjnpgDCeKweviNiQaKtbpsFJFFvDxsZAbyIjo7JUHAx2TRpYLd1PzZBZBzJ40ZCakx1e3U0BZCYMRh2A2i0QOQRcaQch6ChFbRtWhXWTzCEEg3PFC0jrRZAOHqmIHShKUyFxNOemfaoxUF0QaZCd4ZCjby3xqgewEH9Eoea2bAywLDKit5vH38dDzDZCZBZC8qlU9ZBRjf94mEcFb2yzqRHLdxOJEpHAGG6IrdqCSXxJYnjyQZDZD"
-PHONE_NUMBER_IDE = "762799950241046"
-
-#------------------  Base de Datos Y Flask ------------------
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///metapython.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# Modelo para mensajes y logs normales
+# TOKENES Y CONFIG
+VERIFY_TOKEN = "FARABOT"
+ACCESS_TOKEN = "TU_ACCESS_TOKEN"
+ID_NUMERO = "762799950241046"
+
+# 📌 Base de datos
 class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    fecha = db.Column(db.Date, default=datetime.utcnow)
-    hora = db.Column(db.Time, default=datetime.utcnow)
-    telefono = db.Column(db.String(20))
-    texto = db.Column(db.Text)
+    fecha = db.Column(db.String(10))
+    hora = db.Column(db.String(8))
+    numero = db.Column(db.String(20))
+    mensaje = db.Column(db.Text)
 
-# Modelo para errores
 class ErrorLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    fecha = db.Column(db.Date, default=datetime.utcnow)
-    hora = db.Column(db.Time, default=datetime.utcnow)
-    texto = db.Column(db.Text)
+    fecha = db.Column(db.String(10))
+    hora = db.Column(db.String(8))
+    detalle = db.Column(db.Text)
 
-with app.app_context():
-    db.create_all()
+db.create_all()
 
-# Función para agregar mensaje normal
-def agregar_mensajes_log(texto, telefono=None):
-    ahora = datetime.utcnow()
-    nuevo_registro = Log(fecha=ahora.date(), hora=ahora.time(), telefono=telefono, texto=texto)
-    db.session.add(nuevo_registro)
+# 📌 Guardar log con hora local
+def agregar_mensajes_log(numero, mensaje):
+    ahora = datetime.now(ZoneInfo("America/Mexico_City"))
+    fecha = ahora.strftime("%d/%m/%Y")
+    hora = ahora.strftime("%H:%M:%S")
+    nuevo = Log(fecha=fecha, hora=hora, numero=numero, mensaje=mensaje)
+    db.session.add(nuevo)
     db.session.commit()
 
-# Función para agregar error
-def agregar_error_log(texto):
-    ahora = datetime.utcnow()
-    nuevo_error = ErrorLog(fecha=ahora.date(), hora=ahora.time(), texto=texto)
-    db.session.add(nuevo_error)
+def agregar_error_log(detalle):
+    ahora = datetime.now(ZoneInfo("America/Mexico_City"))
+    fecha = ahora.strftime("%d/%m/%Y")
+    hora = ahora.strftime("%H:%M:%S")
+    error = ErrorLog(fecha=fecha, hora=hora, detalle=detalle)
+    db.session.add(error)
     db.session.commit()
 
-def ordenar_por_fecha_y_hora(registros):
-    return sorted(registros, key=lambda x: (x.fecha, x.hora), reverse=True)
-
-# Ruta principal muestra 2 tablas: mensajes y errores
-@app.route('/')
-def index():
-    logs = Log.query.all()
-    logs = ordenar_por_fecha_y_hora(logs)
-    errores = ErrorLog.query.all()
-    errores = ordenar_por_fecha_y_hora(errores)
-    return render_template('index.html', registros=logs, errores=errores)
-
-# Webhook y funciones principales
-
-@app.route('/webhook', methods=['GET', 'POST'])
-def webhook():
-    if request.method == 'GET':
-        return verificar_token(request)
-    elif request.method == 'POST':
-        return recibir_mensajes(request)
-
-def verificar_token(req):
-    token = req.args.get('hub.verify_token')
-    challenge = req.args.get('hub.challenge')
-    if challenge and token == TOKEN_VERIFICACION:
-        return challenge
-    else:
-        return jsonify({'error': 'Token inválido'}), 401
-
-def recibir_mensajes(req):
-    try:
-        req = request.get_json()
-        agregar_mensajes_log("JSON recibido:")
-        agregar_mensajes_log(json.dumps(req, indent=2))
-
-        entry = req['entry'][0]
-        changes = entry['changes'][0]
-        value = changes['value']
-
-        mensajes = value.get('messages')
-        estados = value.get('statuses')
-
-        if mensajes:
-            msg = mensajes[0]
-            numero = msg["from"].strip()
-
-            if msg.get("type") == "interactive":
-                seleccion = msg["interactive"]["button_reply"]["id"]
-                agregar_mensajes_log(f"{numero} seleccionó: {seleccion}", numero)
-                responder_seleccion(seleccion, numero)
-
-            elif msg.get("type") == "text":
-                texto = msg["text"]["body"].strip().lower()
-                agregar_mensajes_log(f"{numero}: {texto}", numero)
-
-                if es_primer_mensaje(numero) or texto == "menu":
-                    enviar_texto(numero, "👋 Hola, soy Farabot. Estoy para servirte.")
-                    enviar_menu(numero)
-                else:
-                    enviar_texto(numero, "🕐 Un asesor se pondrá en contacto contigo en breve.")
-
-        elif estados:
-            # No guardar logs de estado
-            pass
-
-        else:
-            agregar_mensajes_log("⚠️ No se recibió mensaje. Nada que responder.")
-
-        return jsonify({'message': 'EVENT_RECEIVED'})
-
-    except Exception as e:
-        error = f"Error en webhook: {str(e)}"
-        print(error)
-        agregar_error_log(error)
-        return jsonify({'message': 'EVENT_RECEIVED'})
-
-# Función para saber si es primer mensaje
+# 📌 Verificar si es primer mensaje
 def es_primer_mensaje(numero):
-    return Log.query.filter_by(telefono=numero).count() == 0
+    return not Log.query.filter_by(numero=numero).first()
 
-# Funciones para enviar respuestas, menú y botones (igual que antes)
-
-def responder_seleccion(opcion, numero):
-    if opcion == "op1":
-        texto = ("📘 *Información general*:\n\n🎓 Nuestro bachillerato en línea ...")
-        enviar_boton_regreso(texto, numero)
-
-    elif opcion == "op2":
-        texto = ("📋 *¿Cómo me inscribo?*\n\n✍️ ¡El proceso es muy sencillo! ...")
-        enviar_boton_regreso(texto, numero)
-
-    elif opcion == "op3":
-        texto = ("💰 *Costos y promociones*:\n\n💰 Nuestro modelo es accesible ...")
-        enviar_boton_regreso(texto, numero)
-
-    elif opcion == "enviar_menu":
-        enviar_menu(numero)
-
-def enviar_menu(numero, recordar=False):
-    numero = "524611777249"  # borrar en producción
-    texto = "*Selecciona una opción para continuar:*\n" if not recordar else "⚠️ Por favor selecciona una opción del menú:"
-    data = {
-        "messaging_product": "whatsapp",
-        "to": numero,
-        "type": "interactive",
-        "interactive": {
-            "type": "button",
-            "body": {"text": texto},
-            "action": {
-                "buttons": [
-                    {"type": "reply", "reply": {"id": "op1", "title": "1️⃣ Informacion"}},
-                    {"type": "reply", "reply": {"id": "op2", "title": "2️⃣ Inscripción"}},
-                    {"type": "reply", "reply": {"id": "op3", "title": "3️⃣ Costos"}},
-                ]
-            }
-        }
-    }
-    enviar_peticion(data)
-
-def enviar_boton_regreso(texto, numero):
-    numero = "524611777249"  # borrar en producción
-    data = {
-        "messaging_product": "whatsapp",
-        "to": numero,
-        "type": "interactive",
-        "interactive": {
-            "type": "button",
-            "body": {"text": texto},
-            "action": {
-                "buttons": [
-                    {"type": "reply", "reply": {"id": "enviar_menu", "title": "🔙 Menú"}}
-                ]
-            }
-        }
-    }
-    enviar_peticion(data)
-
+# 📌 Enviar mensaje por WhatsApp
 def enviar_texto(numero, texto):
-    numero = "524611777249"  # borrar en producción
-    data = {
-        "messaging_product": "whatsapp",
-        "to": numero,
-        "type": "text",
-        "text": {"body": texto}
-    }
-    enviar_peticion(data)
-
-def enviar_peticion(data):
-    headers = {
-        "Authorization": f"Bearer {ACCESS_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    conn = http.client.HTTPSConnection("graph.facebook.com")
     try:
-        conn.request("POST", f"/v22.0/{PHONE_NUMBER_IDE}/messages", json.dumps(data), headers)
+        conn = http.client.HTTPSConnection("graph.facebook.com")
+        payload = json.dumps({
+            "messaging_product": "whatsapp",
+            "to": numero,
+            "type": "text",
+            "text": {"body": texto}
+        })
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {ACCESS_TOKEN}'
+        }
+        conn.request("POST", f"/v17.0/{ID_NUMERO}/messages", payload, headers)
         res = conn.getresponse()
-        body = res.read().decode()
-        print("📤 Enviado:", body)
-        agregar_mensajes_log("Respuesta WhatsApp:\n" + body)
+        data = res.read().decode("utf-8")
+        print("Respuesta WhatsApp:", data)
     except Exception as e:
-        error = f"Error al enviar mensaje: {str(e)}"
-        print(error)
-        agregar_error_log(error)
-    finally:
-        conn.close()
+        agregar_error_log(f"Error al enviar mensaje: {str(e)}")
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80, debug=True)
+# 📌 Enviar menú con botones
+def enviar_menu(numero):
+    try:
+        conn = http.client.HTTPSConnection("graph.facebook.com")
+        payload = json.dumps({
+            "messaging_product": "whatsapp",
+            "to": numero,
+            "type": "interactive",
+            "interactive": {
+                "type": "button",
+                "body": {"text": "¿En qué puedo ayudarte?"},
+                "action": {
+                    "buttons": [
+                        {"type": "reply", "reply": {"id": "opcion1", "title": "📌 Información"}},
+                        {"type": "reply", "reply": {"id": "opcion2", "title": "💰 Precios"}},
+                        {"type": "reply", "reply": {"id": "opcion3", "title": "📦 Productos"}},
+                        {"type": "reply", "reply": {"id": "opcion4", "title": "📞 Contacto"}},
+                        {"type": "reply", "reply": {"id": "opcion5", "title": "🧑‍💼 Hablar con asesor"}}
+                    ]
+                }
+            }
+        })
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {ACCESS_TOKEN}'
+        }
+        conn.request("POST", f"/v17.0/{ID_NUMERO}/messages", payload, headers)
+        res = conn.getresponse()
+        data = res.read().decode("utf-8")
+        print("Respuesta WhatsApp:", data)
+    except Exception as e:
+        agregar_error_log(f"Error al enviar menú: {str(e)}")
+
+# 📌 Webhook verificación
+@app.route("/webhook", methods=["GET"])
+def verificar_token():
+    token = request.args.get("hub.verify_token")
+    challenge = request.args.get("hub.challenge")
+    return challenge if token == VERIFY_TOKEN else "Token inválido"
+
+# 📌 Webhook recepción
+@app.route("/webhook", methods=["POST"])
+def recibir_mensajes():
+    try:
+        data = request.get_json()
+        print("JSON recibido:", json.dumps(data, indent=2))
+
+        for entry in data.get("entry", []):
+            for change in entry.get("changes", []):
+                value = change.get("value", {})
+                mensajes = value.get("messages", [])
+
+                for msg in mensajes:
+                    numero = msg.get("from")
+                    tipo = msg.get("type")
+
+                    if tipo == "text":
+                        texto = msg["text"]["body"].strip().lower()
+                        agregar_mensajes_log(numero, texto)
+
+                        if es_primer_mensaje(numero) or texto == "menu":
+                            enviar_texto(numero, "👋 Hola, soy Farabot. Estoy para servirte.")
+                            enviar_menu(numero)
+                        else:
+                            enviar_texto(numero, "🕐 Un asesor se pondrá en contacto contigo en breve.")
+
+                    elif tipo == "interactive":
+                        respuesta_id = msg["interactive"]["button_reply"]["id"]
+                        if respuesta_id == "opcion1":
+                            enviar_texto(numero, "📌 Aquí tienes la información general...")
+                            enviar_menu(numero)
+                        elif respuesta_id == "opcion2":
+                            enviar_texto(numero, "💰 Nuestros precios son...")
+                            enviar_menu(numero)
+                        elif respuesta_id == "opcion3":
+                            enviar_texto(numero, "📦 Ofrecemos estos productos...")
+                            enviar_menu(numero)
+                        elif respuesta_id == "opcion4":
+                            enviar_texto(numero, "📞 Puedes contactarnos al +52...")
+                            enviar_menu(numero)
+                        elif respuesta_id == "opcion5":
+                            enviar_texto(numero, "🧑‍💼 Un asesor te contactará pronto.")
+
+        return "ok", 200
+    except Exception as e:
+        agregar_error_log(f"Error en webhook: {str(e)}")
+        return "error", 500
+
+# 📌 Página de visualización de logs
+@app.route("/")
+def index():
+    logs = Log.query.order_by(Log.id.desc()).limit(20).all()
+    errores = ErrorLog.query.order_by(ErrorLog.id.desc()).limit(10).all()
+    return render_template("index.html", logs=logs, errores=errores)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=80)

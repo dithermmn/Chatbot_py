@@ -1,3 +1,5 @@
+# Cuando el usuario pone hola buenas le manda el menu con botones si pone otra cosa manda que alguien lo atendeedra 
+
 # Importación de librerías necesarias
 from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
