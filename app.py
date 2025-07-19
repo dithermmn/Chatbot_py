@@ -106,7 +106,7 @@ def recibir_mensajes(req):
                 texto = msg["text"]["body"].strip().lower()
                 agregar_mensajes_log(f"{numero}: {texto}", numero)
 
-                if es_primer_mensaje(numero):
+                if es_primer_mensaje(numero) or texto == "menu":
                     enviar_texto(numero, "👋 Hola, soy Farabot. Estoy para servirte.")
                     enviar_menu(numero)
                 else:
