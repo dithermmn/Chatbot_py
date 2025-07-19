@@ -114,8 +114,17 @@ def recibir_mensajes(req):
                 else:
                     enviar_texto(numero, "🕐 Un asesor se pondrá en contacto contigo en breve.")
         else:
-            numero = value['contacts'][0]['wa_id']
-            enviar_texto(numero, "⚠️ Por favor selecciona una opción del menú o espera a que un asesor te atienda.")
+            try:
+                contactos = value.get('contacts')
+                if contactos and isinstance(contactos, list) and 'wa_id' in contactos[0]:
+                    numero = contactos[0]['wa_id']
+                    enviar_texto(numero, "⚠️ Por favor selecciona una opción del menú o espera a que un asesor te atienda.")
+                else:
+                    agregar_mensajes_log("⚠️ No se encontró el número del usuario (contacts ausente o incompleto)")
+            except Exception as e:
+                error = f"Error al acceder a 'contacts': {str(e)}"
+                print(error)
+                agregar_mensajes_log(error)
 
         return jsonify({'message': 'EVENT_RECEIVED'})
 
