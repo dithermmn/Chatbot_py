@@ -29,7 +29,8 @@ class ErrorLog(db.Model):
     hora = db.Column(db.String(8))
     detalle = db.Column(db.Text)
 
-db.create_all()
+with app.app_context():
+    db.create_all()
 
 # 📌 Guardar log con hora local
 def agregar_mensajes_log(numero, mensaje):
