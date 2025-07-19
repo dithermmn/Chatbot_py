@@ -214,6 +214,14 @@ def enviar_texto(numero, texto):
     }
     enviar_peticion(data)
 
+## BORRAR ESTOOOOO
+@app.route('/borrar_mi_numero')
+def borrar_mi_numero():
+    numero = "524611777249"
+    registros_borrados = Log.query.filter_by(telefono=numero).delete()
+    db.session.commit()
+    return f"✅ Se eliminaron {registros_borrados} registros del número {numero}"
+
 #------------------ Envia peticion HTTP ------------------ 
 
 # Función base que envía cualquier mensaje por API
