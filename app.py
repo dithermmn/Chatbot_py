@@ -5,14 +5,16 @@
 from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from pytz import timezone
 import http.client
 import json
+
 
 
 #------------------ VARIABLES ------------------
 
 TOKEN_VERIFICACION = "FARABOT" # Token de seguridad para el webhook
-ACCESS_TOKEN = "EAAVPtixyt4QBPFMZAvwiwYkjnpgDCeKweviNiQaKtbpsFJFFvDxsZAbyIjo7JUHAx2TRpYLd1PzZBZBzJ40ZCakx1e3U0BZCYMRh2A2i0QOQRcaQch6ChFbRtWhXWTzCEEg3PFC0jrRZAOHqmIHShKUyFxNOemfaoxUF0QaZCd4ZCjby3xqgewEH9Eoea2bAywLDKit5vH38dDzDZCZBZC8qlU9ZBRjf94mEcFb2yzqRHLdxOJEpHAGG6IrdqCSXxJYnjyQZDZD"
+ACCESS_TOKEN = "EAAVPtixyt4QBPJtIaw3fsg3oZBKQW1L99nh8CD8ZCLaLPn85RerUWZBiqTZCCeSbt4Or6RZCYe2LlA3eL4B5cO2vIQUtUDohVHc1BRImV1yVaa2wdZA59UViZAHm57eJ9ExmJXypXXLArLWlnWTRJ25VJijKvcUE6ZBdYnHjrPEduLIInsS8b60SGUseSsBDwJ75g7SsgcdYihvQZAKvTQLqwPQgs6T3IG9vg0JPiiZA8xhT730qQ7c7IZBsHrbneJpWgZDZD"
 PHONE_NUMBER_IDE ="762799950241046" #Identificador del numero (del numero de faraday)
 
 #------------------  Base de Datos Y Flask ------------------
@@ -26,7 +28,8 @@ db = SQLAlchemy(app)
 # Modelo de tabla para guardar mensajes y logs
 class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    fecha_y_hora = db.Column(db.DateTime, default=datetime.utcnow)
+    mexico_time = datetime.now(timezone("America/Mexico_City"))
+    fecha_y_hora = db.Column(db.DateTime, default=mexico_time)
     texto = db.Column(db.TEXT)
     telefono = db.Column(db.String(20))  # Guardar número
     

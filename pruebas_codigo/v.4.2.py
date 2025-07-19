@@ -1,4 +1,4 @@
-#El primer mensaje del usuuario o si pone menu manda el menu y los posteriores pone que lo va a atender alguien 
+#El primer mensaje del usuuario o si pone menu manda texto y el menu y los mensajes posteriores pone que lo va a atender alguien 
 
 
 # Importación de librerías necesarias
