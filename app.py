@@ -9,7 +9,7 @@ import json
 #------------------ VARIABLES ------------------
 
 TOKEN_VERIFICACION = "FARABOT" # Token de seguridad para el webhook
-ACCESS_TOKEN = "EAAVPtixyt4QBPAUlSEYiq0LL5VreYR7Bo91vqYtMvxzmZAVPyi6UZBDM8qZAowRSocmfeScyNibuiECkPJGUKXVQhHbvPCvjs3JPDs1KJYuFmo9lAN4A7wwnCM8tMS0IKlKoDVBfFIClgJ4SzfVqtZAZCKggOxw65wRZB1kudmNLJz4JUF1XoZA7GWX6MonjLqb3gnMNN0rf10QZBoxEouO1X9r0zM0FC3DWgIbQUU3dOTTWXW7ZCw1cvMJ8VrUgZAZCgZDZD"
+ACCESS_TOKEN = "EAAVPtixyt4QBPJYCqpZBCqbMxjWhuNQjA6GwwZAZA9RU4aFejEJIkXHLbZAWtg3h4Ag5ZAPt15TmlgJBIepAGHFoWT0AIZC4Rmt2qbEyb5QQK9tfRIS23Wn4UZBdcK9Xcq6ZBkEha1Vjz8qoj2aELQXAlHf2gwwf1dCZCWiXonNumFfimrZCmDnFPY07QmaatAWkWMPFAjosizqt9fdmI8ZCBqfhgXZAHTzjIJm27ZCdQ8ZBiPZC0269JtIsSq1SlqbA4Ifk5gZD"
 PHONE_NUMBER_IDE ="762799950241046" #Identificador del numero (del numero de faraday)
 
 #------------------  Base de Datos Y Flask ------------------
@@ -25,7 +25,6 @@ class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     fecha_y_hora = db.Column(db.DateTime, default=datetime.utcnow)
     texto = db.Column(db.TEXT)
-    telefono = db.Column(db.String(20)) # Guardar el numero del usuario
 
 # Crear la tabla en la base de datos si no existe
 with app.app_context():
@@ -34,18 +33,14 @@ with app.app_context():
 # -------------> FUNCIONES DE BD
 
 # Función - guardar mensajes en la BD
-def agregar_mensajes_log(texto, telefono=None):
-    nuevo_registro = Log(texto=texto, telefono=telefono)
+def agregar_mensajes_log(texto):
+    nuevo_registro = Log(texto=texto)
     db.session.add(nuevo_registro)
     db.session.commit()
 
 # Función auxiliar - ordenar mensajes por fecha descendente
 def ordenar_por_fecha_y_hora(registros):
     return sorted(registros, key=lambda x: x.fecha_y_hora, reverse=True)
-
-# Funcion para saber si es el primer mensje
-def es_primer_mensaje(numero):
-    return Log.query.filter_by(telefono=numero).count() == 0
 
 # -------------> HTML
 
@@ -98,23 +93,21 @@ def recibir_mensajes(req):
             numero = msg["from"].strip()
 
             if msg.get("type") == "interactive":
-                # Usuario pulsó un botón
                 seleccion = msg["interactive"]["button_reply"]["id"]
-                agregar_mensajes_log(f"{numero} seleccionó: {seleccion}", numero)
                 responder_seleccion(seleccion, numero)
 
             elif msg.get("type") == "text":
                 texto = msg["text"]["body"].strip().lower()
-                agregar_mensajes_log(f"{numero}: {texto}", numero)
+                agregar_mensajes_log(f"{numero}: {texto}")
 
-                if es_primer_mensaje(numero): # Si es el primer mensaje - enviamos texto y menu
+                if texto in ["hola", "buenas", "buenos días", "buenas tardes", "buenas noches"]:
                     enviar_texto(numero, "👋 Hola, soy Farabot. Estoy para servirte.")
                     enviar_menu(numero)
-                    
                 else:
                     enviar_texto(numero, "🕐 Un asesor se pondrá en contacto contigo en breve.")
         else:
-            agregar_mensajes_log("⚠️ No se recibió mensaje. Nada que responder.")
+            numero = value['contacts'][0]['wa_id']
+            enviar_texto(numero, "⚠️ Por favor selecciona una opción del menú o espera a que un asesor te atienda.")
 
         return jsonify({'message': 'EVENT_RECEIVED'})
 
@@ -212,14 +205,6 @@ def enviar_texto(numero, texto):
         }
     }
     enviar_peticion(data)
-
-## BORRAR ESTOOOOO
-@app.route('/borrar_mi_numero')
-def borrar_mi_numero():
-    numero = "524611777249"
-    registros_borrados = Log.query.filter_by(telefono=numero).delete()
-    db.session.commit()
-    return f"✅ Se eliminaron {registros_borrados} registros del número {numero}"
 
 #------------------ Envia peticion HTTP ------------------ 
 
