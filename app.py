@@ -5,10 +5,8 @@
 from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-from pytz import timezone
 import http.client
 import json
-
 
 
 #------------------ VARIABLES ------------------
@@ -28,8 +26,7 @@ db = SQLAlchemy(app)
 # Modelo de tabla para guardar mensajes y logs
 class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    mexico_time = datetime.now(timezone("America/Mexico_City"))
-    fecha_y_hora = db.Column(db.DateTime, default=mexico_time)
+    fecha_y_hora = db.Column(db.DateTime, default=datetime.utcnow)
     texto = db.Column(db.TEXT)
     telefono = db.Column(db.String(20))  # Guardar número
     
@@ -91,7 +88,6 @@ def verificar_token(req):
 def recibir_mensajes(req):
     try:
         req = request.get_json()
-        agregar_mensajes_log("JSON recibido:")
         agregar_mensajes_log(json.dumps(req, indent=2))
 
         entry = req['entry'][0]
