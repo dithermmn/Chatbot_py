@@ -25,6 +25,8 @@ class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     fecha_y_hora = db.Column(db.DateTime, default=datetime.utcnow)
     texto = db.Column(db.TEXT)
+    telefono = db.Column(db.String(20))  # Guardar número
+    
 
 # Crear la tabla en la base de datos si no existe
 with app.app_context():
@@ -33,8 +35,8 @@ with app.app_context():
 # -------------> FUNCIONES DE BD
 
 # Función - guardar mensajes en la BD
-def agregar_mensajes_log(texto):
-    nuevo_registro = Log(texto=texto)
+def agregar_mensajes_log(texto, telefono=None):
+    nuevo_registro = Log(texto=texto, telefono=telefono)
     db.session.add(nuevo_registro)
     db.session.commit()
 
@@ -42,6 +44,9 @@ def agregar_mensajes_log(texto):
 def ordenar_por_fecha_y_hora(registros):
     return sorted(registros, key=lambda x: x.fecha_y_hora, reverse=True)
 
+# Verificar si es primer mensaje para un número
+def es_primer_mensaje(numero):
+    return Log.query.filter_by(telefono=numero).count() == 0
 # -------------> HTML
 
 # Ruta raíz que muestra los mensajes en HTML
@@ -94,20 +99,20 @@ def recibir_mensajes(req):
 
             if msg.get("type") == "interactive":
                 seleccion = msg["interactive"]["button_reply"]["id"]
+                agregar_mensajes_log(f"{numero} seleccionó: {seleccion}", numero)
                 responder_seleccion(seleccion, numero)
 
             elif msg.get("type") == "text":
                 texto = msg["text"]["body"].strip().lower()
-                agregar_mensajes_log(f"{numero}: {texto}")
+                agregar_mensajes_log(f"{numero}: {texto}", numero)
 
-                if texto in ["hola", "buenas", "buenos días", "buenas tardes", "buenas noches"]:
+                if es_primer_mensaje(numero):
                     enviar_texto(numero, "👋 Hola, soy Farabot. Estoy para servirte.")
                     enviar_menu(numero)
                 else:
                     enviar_texto(numero, "🕐 Un asesor se pondrá en contacto contigo en breve.")
         else:
-            numero = value['contacts'][0]['wa_id']
-            enviar_texto(numero, "⚠️ Por favor selecciona una opción del menú o espera a que un asesor te atienda.")
+            agregar_mensajes_log("⚠️ No se recibió mensaje. Nada que responder.")
 
         return jsonify({'message': 'EVENT_RECEIVED'})
 
